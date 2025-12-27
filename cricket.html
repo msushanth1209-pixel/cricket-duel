@@ -13,7 +13,6 @@
            --team-red: #d32f2f;
            --team-blue: #1976d2;
            --gold: #ffd700;
-           --card-bg: #1e1e1e;
            --danger-red: #ff4757;
         }
  
@@ -37,16 +36,9 @@
            flex-direction: column; position: relative; z-index: 10; 
         }
         .screen.active { display: flex; }
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 100; display:none; align-items:center; justify-content:center; flex-direction:column; text-align: center; }
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 200; display:none; align-items:center; justify-content:center; flex-direction:column; text-align: center; }
         
-        .box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; width: 90%; margin: 15px 0; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
- 
-        /* INPUTS & BUTTONS */
-        input { 
-           background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; 
-           color: white; padding: 12px; width: 80%; text-align: center; 
-           font-family: 'Rajdhani'; font-size: 1.2rem; margin: 10px 0; outline: none;
-        }
+        /* BUTTONS */
         .btn { 
             border: none; padding: 12px 24px; border-radius: 4px; 
             font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; 
@@ -58,17 +50,38 @@
         .btn-gold { background: var(--gold); color: black; font-weight: bold; }
         .btn-red { background: var(--team-red); color: white; }
         .btn-blue { background: var(--team-blue); color: white; }
-        .btn-green { background: var(--pitch-green); color: white; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #aaa; font-size: 1rem; }
         
-        /* EXIT BUTTON */
+        /* PERSISTENT UI */
         .exit-btn {
             position: absolute; top: 15px; right: 15px; z-index: 1000;
             background: var(--danger-red); width: 35px; height: 35px; border-radius: 50%;
             border: 2px solid white; color: white; font-weight: bold; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
         }
- 
+        .rules-btn {
+            position: absolute; top: 15px; left: 15px; z-index: 1000;
+            background: var(--gold); width: 35px; height: 35px; border-radius: 50%;
+            border: 2px solid black; color: black; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 1.2rem;
+        }
+        
+        /* 🔴 FORCE BUTTON (HOST ONLY) 🔴 */
+        #force-btn {
+            position: absolute; bottom: 80px; right: 20px; z-index: 1500;
+            background: #ff9800; color: black; border: 2px solid white;
+            padding: 8px 15px; border-radius: 30px; font-family: 'Teko'; font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.5); display: none; /* Hidden by default */
+            cursor: pointer;
+        }
+
+        /* INPUTS */
+        input { 
+           background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; 
+           color: white; padding: 12px; width: 80%; text-align: center; 
+           font-family: 'Rajdhani'; font-size: 1.2rem; margin: 10px 0; outline: none;
+        }
+
         /* LISTS */
         .player-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -145,6 +158,8 @@
 <body>
  
     <button class="exit-btn" onclick="exitGame()">✕</button>
+    <button class="rules-btn" onclick="showRules()">?</button>
+    <button id="force-btn" onclick="forceNextStep()">FORCE NEXT ⏩</button>
  
     <div id="rules-overlay" class="overlay" onclick="this.style.display='none'">
         <div style="background:#222; padding:20px; border-radius:10px; width:90%; border:1px solid #444;">
@@ -179,7 +194,6 @@
                 </div>
             </div>
         </div>
-        <button class="btn btn-outline" style="margin-top: 30px; border:none; font-size:0.9rem;" onclick="showRules()">VIEW RULES</button>
     </div>
  
     <div id="s-lobby" class="screen">
@@ -229,10 +243,11 @@
         <div id="coin-anim" style="font-size:6rem; margin:20px;">🪙</div>
         
         <div id="captain-toss-controls" style="display:none; margin-top:20px;">
-            <p style="color:var(--gold); margin-bottom:10px;">YOU WON THE TOSS!</p>
+            <p style="color:var(--gold); margin-bottom:10px; font-weight:bold;">YOU WON THE TOSS!</p>
             <button class="btn btn-blue" onclick="decideToss('BAT')">BAT</button>
             <button class="btn btn-red" onclick="decideToss('BOWL')">BOWL</button>
         </div>
+        <p id="toss-waiting-msg" style="color:#666; display:none;">Waiting for Captain to decide...</p>
     </div>
  
     <div id="s-selection" class="screen">
@@ -275,8 +290,7 @@
             </div>
         </div>
  
-        <div id="hand-area" class="hand-container">
-            </div>
+        <div id="hand-area" class="hand-container"></div>
         <div id="spectator-msg" style="display:none; background:#222; color:#aaa; text-align:center; padding:10px; border-top:1px solid #444;">
             <div style="font-size:0.8rem;">CURRENT DUEL</div>
             <div class="big-text" id="current-action" style="color:white; font-size:1.5rem;">PLAYER vs PLAYER</div>
@@ -303,7 +317,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, get, remove, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
  
-        // 🔴🔴 YOUR SPECIFIC FIREBASE CONFIG 🔴🔴
         const firebaseConfig = {
             apiKey: "AIzaSyC--gCjpWdYsezrqvQ4tAzvtLKGW_oRtsM",
             authDomain: "cricketduel.firebaseapp.com",
@@ -318,12 +331,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
  
-        // --- GAME DATA ---
         const CARDS = {
             BAT: ['6 RUNS', '4 RUNS', '4 RUNS', '2 RUNS', '2 RUNS', '1 RUN', '1 RUN', 'DEFENSE'],
             BOWL: ['YORKER', 'BOUNCER', 'FAST', 'FAST', 'SPIN', 'SPIN', 'FULL TOSS', 'FULL TOSS']
         };
-        // Matrix: 0=Dot, -1=Out, >0=Runs
         const OUTCOMES = {
             '6 RUNS':   { 'FULL TOSS': 6, 'SPIN': 6, 'FAST': -1, 'YORKER': -1, 'BOUNCER': 0 },
             '4 RUNS':   { 'FULL TOSS': 4, 'BOUNCER': 4, 'FAST': -1, 'YORKER': -1, 'SPIN': 0 },
@@ -339,7 +350,8 @@
         let isCaptain = false;
         let timerInterval = null;
         let persistentListener = null;
-        let lastRenderedBall = -1; // Race condition prevention
+        let lastRenderedBall = -1;
+        let localStateData = null; // Store for force button
  
         const $ = id => document.getElementById(id);
         const switchScreen = id => {
@@ -371,7 +383,6 @@
             if(!snap.exists()) return alert("Invalid Room");
             
             saveSession();
-            // Auto balance team
             const pCount = Object.keys(snap.val().players || {}).length;
             await update(ref(db, `rooms/${roomCode}/players/${myName}`), { 
                 team: pCount % 2 === 0 ? 'A' : 'B', 
@@ -386,7 +397,6 @@
         }
  
         function initListener() {
-            // SINGLE PERSISTENT LISTENER FOR PERFORMANCE
             persistentListener = onValue(ref(db, `rooms/${roomCode}`), snap => {
                 const data = snap.val();
                 if(data) processGameState(data);
@@ -396,11 +406,18 @@
  
         // --- STATE MACHINE ---
         function processGameState(data) {
-            // Update local info
+            localStateData = data; // Save for force button usage
+            
             if(data.players && data.players[myName]) {
                 myTeam = data.players[myName].team;
-                isCaptain = (data.teams[myTeam].captain === myName);
+                if (data.teams && data.teams[myTeam]) {
+                    isCaptain = (data.teams[myTeam].captain === myName);
+                }
             }
+ 
+            // Show Force Button only for Host
+            if(isHost && data.state !== 'LOBBY') $('force-btn').style.display = 'block';
+            else $('force-btn').style.display = 'none';
  
             renderLobby(data); 
  
@@ -433,6 +450,22 @@
             }
         }
  
+        // 🔴 SMART FORCE BUTTON LOGIC 🔴
+        window.forceNextStep = () => {
+            if(!isHost || !localStateData) return;
+            const s = localStateData.state;
+            
+            if(s === 'VOTING') resolveVoting(localStateData);
+            else if(s === 'TOSS') {
+                // If toss winner missing, set random
+                if(!localStateData.tossWinner) update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B');
+                // If stuck on decision, force random Bat/Bowl
+                else decideToss('BAT', true); // Force default
+            }
+            else if(s === 'SELECTION') autoSelect(localStateData);
+            else if(s === 'GAMEPLAY') resolveDuel(localStateData, true);
+        };
+ 
         // --- PHASE: LOBBY ---
         function renderLobby(data) {
             const listA = $('list-team-a');
@@ -441,7 +474,7 @@
             
             Object.keys(data.players || {}).forEach(p => {
                 const pl = data.players[p];
-                const isCap = (data.teams[pl.team].captain === p);
+                const isCap = (data.teams && data.teams[pl.team].captain === p);
                 const el = document.createElement('div');
                 el.className = `player-row ${pl.team==='A'?'team-a-border':'team-b-border'}`;
                 el.innerHTML = `<span>${p} ${isCap ? '<span class="captain-badge">C</span>':''}</span>`;
@@ -460,7 +493,7 @@
             update(ref(db, `rooms/${roomCode}`), {
                 state: 'VOTING',
                 'config/overs': parseInt($('overs-select').value),
-                timerEnd: Date.now() + 30000 // 30s
+                timerEnd: Date.now() + 30000 
             });
         };
  
@@ -477,11 +510,13 @@
                     const btn = document.createElement('button');
                     btn.className = "btn btn-outline";
                     btn.style.width = '100%';
-                    btn.innerText = p;
+                    btn.innerText = `VOTE: ${p}`;
+                    btn.style.marginBottom = '10px';
                     btn.onclick = () => {
                         update(ref(db, `rooms/${roomCode}/votes/${p}/${myName}`), true);
                         btn.className = "btn btn-gold";
                         btn.disabled = true;
+                        btn.innerText = `VOTED FOR ${p}`;
                     };
                     list.appendChild(btn);
                 }
@@ -511,16 +546,26 @@
  
             if(data.tossWinner) {
                 $('toss-msg').innerText = (data.tossWinner === 'A' ? "RED TEAM" : "BLUE TEAM") + " WON!";
-                if(isCaptain && myTeam === data.tossWinner) {
+                
+                if(myTeam === data.tossWinner && isCaptain) {
                     $('captain-toss-controls').style.display = 'block';
+                    $('toss-waiting-msg').style.display = 'none';
+                } else {
+                    $('captain-toss-controls').style.display = 'none';
+                    $('toss-waiting-msg').style.display = 'block';
                 }
             }
         }
  
-        window.decideToss = (choice) => {
+        window.decideToss = (choice, force) => {
+            // If forced (host override), we need to guess who won toss
+            let winner = localStateData.tossWinner;
+            if(force && !winner) winner = 'A'; // Fallback
+
             let batT, bowlT;
-            if(choice === 'BAT') { batT = myTeam; bowlT = (myTeam==='A'?'B':'A'); }
-            else { bowlT = myTeam; batT = (myTeam==='A'?'B':'A'); }
+            // Determine teams based on winner's choice
+            if(choice === 'BAT') { batT = winner; bowlT = (winner==='A'?'B':'A'); }
+            else { bowlT = winner; batT = (winner==='A'?'B':'A'); }
  
             update(ref(db, `rooms/${roomCode}`), {
                 battingTeam: batT,
@@ -562,7 +607,6 @@
                 });
             }
  
-            // Check if both selected
             if(isHost && data.match && data.match.striker && data.match.bowler) {
                 const s = data.match.striker;
                 const b = data.match.bowler;
@@ -590,10 +634,9 @@
         // --- PHASE: GAMEPLAY ---
         function handleGameplay(data) {
             runTimer(data.timerEnd, 'game-timer', () => {
-                if(isHost) resolveDuel(data, true); // Timeout
+                if(isHost) resolveDuel(data, true); 
             });
  
-            // UI Update
             const batTeamName = data.teams[data.battingTeam].name;
             const bowlTeamName = data.teams[data.bowlingTeam].name;
             $('bat-name').innerText = batTeamName;
@@ -605,14 +648,12 @@
             const balls = data.score.balls%6;
             $('over-val').innerText = `${overs}.${balls}`;
  
-            // Roles
             const striker = data.match.striker;
             const bowler = data.match.bowler;
             const amStriker = (myName === striker);
             const amBowler = (myName === bowler);
             const amSpectator = !amStriker && !amBowler;
  
-            // Hand Display
             const handArea = $('hand-area');
             const spectatorMsg = $('spectator-msg');
             
@@ -627,7 +668,6 @@
                 renderHand(data.players[myName].hand, amStriker ? 'BAT' : 'BOWL');
             }
  
-            // Card Slots
             const myCard = amStriker ? data.currentBall?.bat : data.currentBall?.bowl;
             const oppCard = amStriker ? data.currentBall?.bowl : data.currentBall?.bat;
  
@@ -637,7 +677,6 @@
             if(oppCard) $('slot-opp').innerHTML = `<div class="card card-hidden"></div>`;
             else $('slot-opp').innerHTML = `<div style="color:#555">WAITING</div>`;
  
-            // 🔴 PREVENT RACE CONDITION: Check if result is new
             const ballID = data.score.balls; 
             if(data.currentBall?.result && ballID !== lastRenderedBall) {
                 lastRenderedBall = ballID;
@@ -678,7 +717,6 @@
             let bat = data.currentBall?.bat;
             let bowl = data.currentBall?.bowl;
             
-            // Random if timed out
             if(!bat) bat = CARDS.BAT[Math.floor(Math.random()*CARDS.BAT.length)];
             if(!bowl) bowl = CARDS.BOWL[Math.floor(Math.random()*CARDS.BOWL.length)];
  
@@ -696,7 +734,6 @@
                 'currentBall/result': txt,
                 'currentBall/bat': bat, 
                 'currentBall/bowl': bowl,
-                // Do NOT increment balls yet, wait for anim
             });
         }
  
@@ -704,7 +741,6 @@
             let balls = data.score.balls + 1;
             const maxBalls = data.config.overs * 6;
             
-            // Win Check
             if(data.score.target && data.score.runs > data.score.target) {
                 endGame(data.battingTeam);
                 return;
@@ -715,14 +751,12 @@
                 return;
             }
  
-            // Normal Next Ball
             let updates = {
                 'currentBall': null,
                 'score/balls': balls,
                 timerEnd: Date.now() + 15000
             };
  
-            // Rotation Logic
             const isOut = data.currentBall.result === "OUT!";
             const isOver = balls % 6 === 0;
  
@@ -732,7 +766,6 @@
             if(isOut || isOver) {
                 updates.state = 'SELECTION';
             } else {
-                // Remove used cards from hands
                 removeCardFromHand(data.match.striker, data.currentBall.bat, data.players[data.match.striker].hand);
                 removeCardFromHand(data.match.bowler, data.currentBall.bowl, data.players[data.match.bowler].hand);
             }
@@ -746,7 +779,6 @@
             if(idx > -1) {
                 const newHand = [...hand];
                 newHand.splice(idx, 1);
-                // Refill if empty 
                 const finalHand = newHand.length ? newHand : (pid===myName?CARDS.BAT:CARDS.BOWL); 
                 update(ref(db, `rooms/${roomCode}/players/${pid}/hand`), finalHand);
             }
@@ -775,7 +807,6 @@
  
         function handleGameOver(data) {
             $('winner-announce').innerText = data.teams[data.winner].name + " WINS!";
-            // Man of match logic
             $('mom-name').innerText = "CAPTAINS";
             $('mom-stats').innerText = "Leadership";
         }
@@ -791,10 +822,6 @@
                 battingTeam: null,
                 tossWinner: null
             };
-            if(hard) {
-                // Kick everyone but host logic would be here
-                // For simplicity, just reset state, players rejoin teams
-            }
             update(ref(db, `rooms/${roomCode}`), updates);
         };
  
@@ -831,6 +858,7 @@
         window.exitGame = async () => {
             if(confirm("Exit?")) {
                 if(roomCode && myName) await remove(ref(db, `rooms/${roomCode}/players/${myName}`));
+                sessionStorage.clear();
                 location.reload();
             }
         };
