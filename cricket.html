@@ -66,12 +66,11 @@
             display: flex; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 1.2rem;
         }
         
-        /* 🔴 FORCE BUTTON (HOST ONLY) 🔴 */
         #force-btn {
             position: absolute; bottom: 80px; right: 20px; z-index: 1500;
             background: #ff9800; color: black; border: 2px solid white;
             padding: 8px 15px; border-radius: 30px; font-family: 'Teko'; font-size: 1.2rem;
-            box-shadow: 0 0 15px rgba(255, 152, 0, 0.5); display: none; /* Hidden by default */
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.5); display: none; 
             cursor: pointer;
         }
 
@@ -237,6 +236,24 @@
         <div style="text-align:center; padding:20px; color:#aaa;">Vote for your team leader</div>
         <div id="vote-list" style="padding:10px; display:flex; flex-direction:column; gap:10px; overflow-y:auto;"></div>
     </div>
+
+    <div id="s-naming" class="screen">
+        <div class="broadcast-bar">
+            <div class="big-text">TEAM NAME</div>
+            <div class="big-text" style="color:var(--gold)">00:<span id="name-timer">30</span></div>
+        </div>
+        
+        <div id="naming-captain-view" style="display:none; flex-direction:column; align-items:center; padding:20px;">
+            <h3>YOU ARE CAPTAIN!</h3>
+            <p>Enter your Team Name:</p>
+            <input type="text" id="team-name-input" placeholder="E.g. SUPER KINGS" maxlength="15">
+            <button class="btn btn-gold" onclick="submitTeamName()">SUBMIT NAME</button>
+        </div>
+
+        <div id="naming-wait-view" style="display:none; text-align:center; padding:20px; color:#aaa;">
+            <p>Waiting for Captains to name the teams...</p>
+        </div>
+    </div>
  
     <div id="s-toss" class="screen" style="justify-content:center; align-items:center; text-align:center;">
         <h1 id="toss-msg" style="font-size:3rem;">TOSS TIME</h1>
@@ -351,7 +368,7 @@
         let timerInterval = null;
         let persistentListener = null;
         let lastRenderedBall = -1;
-        let localStateData = null; // Store for force button
+        let localStateData = null; 
  
         const $ = id => document.getElementById(id);
         const switchScreen = id => {
@@ -406,7 +423,7 @@
  
         // --- STATE MACHINE ---
         function processGameState(data) {
-            localStateData = data; // Save for force button usage
+            localStateData = data;
             
             if(data.players && data.players[myName]) {
                 myTeam = data.players[myName].team;
@@ -415,7 +432,6 @@
                 }
             }
  
-            // Show Force Button only for Host
             if(isHost && data.state !== 'LOBBY') $('force-btn').style.display = 'block';
             else $('force-btn').style.display = 'none';
  
@@ -430,6 +446,10 @@
                 case 'VOTING':
                     switchScreen('s-voting');
                     handleVoting(data);
+                    break;
+                case 'NAMING':
+                    switchScreen('s-naming');
+                    handleNaming(data);
                     break;
                 case 'TOSS':
                     switchScreen('s-toss');
@@ -450,17 +470,16 @@
             }
         }
  
-        // 🔴 SMART FORCE BUTTON LOGIC 🔴
+        // 🔴 SMART FORCE BUTTON 🔴
         window.forceNextStep = () => {
             if(!isHost || !localStateData) return;
             const s = localStateData.state;
             
             if(s === 'VOTING') resolveVoting(localStateData);
+            else if(s === 'NAMING') update(ref(db, `rooms/${roomCode}/state`), 'TOSS'); // Skip naming if stuck
             else if(s === 'TOSS') {
-                // If toss winner missing, set random
                 if(!localStateData.tossWinner) update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B');
-                // If stuck on decision, force random Bat/Bowl
-                else decideToss('BAT', true); // Force default
+                else decideToss('BAT', true);
             }
             else if(s === 'SELECTION') autoSelect(localStateData);
             else if(s === 'GAMEPLAY') resolveDuel(localStateData, true);
@@ -526,14 +545,46 @@
         function resolveVoting(data) {
             const getCap = (team) => {
                 const mates = Object.keys(data.players).filter(p => data.players[p].team === team);
+                // Fallback to Host name if team is empty to prevent crash
+                if (mates.length === 0) return myName; 
                 return mates[Math.floor(Math.random() * mates.length)]; 
             };
+            
+            // Assign Caps then move to NAMING
             update(ref(db, `rooms/${roomCode}`), {
-                state: 'TOSS',
+                state: 'NAMING',
                 'teams/A/captain': getCap('A'),
-                'teams/B/captain': getCap('B')
+                'teams/B/captain': getCap('B'),
+                timerEnd: Date.now() + 30000 
             });
         }
+
+        // --- PHASE: NAMING ---
+        function handleNaming(data) {
+            runTimer(data.timerEnd, 'name-timer', () => {
+                if(isHost) update(ref(db, `rooms/${roomCode}/state`), 'TOSS'); // Force proceed
+            });
+
+            if (isCaptain) {
+                $('naming-captain-view').style.display = 'flex';
+                $('naming-wait-view').style.display = 'none';
+            } else {
+                $('naming-captain-view').style.display = 'none';
+                $('naming-wait-view').style.display = 'block';
+            }
+
+            // Check if both have named (Host check)
+            if (isHost && data.teams.A.name !== "RED TEAM" && data.teams.B.name !== "BLUE TEAM") {
+                update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
+            }
+        }
+
+        window.submitTeamName = () => {
+            const name = $('team-name-input').value.toUpperCase();
+            if(!name) return;
+            update(ref(db, `rooms/${roomCode}/teams/${myTeam}/name`), name);
+            $('naming-captain-view').innerHTML = `<h3>NAME SUBMITTED: ${name}</h3>`;
+        };
  
         // --- PHASE: TOSS ---
         function handleToss(data) {
@@ -545,7 +596,8 @@
             }
  
             if(data.tossWinner) {
-                $('toss-msg').innerText = (data.tossWinner === 'A' ? "RED TEAM" : "BLUE TEAM") + " WON!";
+                const winnerName = data.teams[data.tossWinner].name;
+                $('toss-msg').innerText = winnerName + " WON!";
                 
                 if(myTeam === data.tossWinner && isCaptain) {
                     $('captain-toss-controls').style.display = 'block';
@@ -558,12 +610,10 @@
         }
  
         window.decideToss = (choice, force) => {
-            // If forced (host override), we need to guess who won toss
             let winner = localStateData.tossWinner;
-            if(force && !winner) winner = 'A'; // Fallback
+            if(force && !winner) winner = 'A'; 
 
             let batT, bowlT;
-            // Determine teams based on winner's choice
             if(choice === 'BAT') { batT = winner; bowlT = (winner==='A'?'B':'A'); }
             else { bowlT = winner; batT = (winner==='A'?'B':'A'); }
  
