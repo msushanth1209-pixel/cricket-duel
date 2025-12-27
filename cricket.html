@@ -50,8 +50,10 @@
         .btn-gold { background: var(--gold); color: black; font-weight: bold; }
         .btn-red { background: var(--team-red); color: white; }
         .btn-blue { background: var(--team-blue); color: white; }
+        .btn-green { background: var(--pitch-green); color: white; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #aaa; font-size: 1rem; }
-        
+        .btn:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+
         /* PERSISTENT UI */
         .exit-btn {
             position: absolute; top: 15px; right: 15px; z-index: 1000;
@@ -244,10 +246,10 @@
         </div>
         
         <div id="naming-captain-view" style="display:none; flex-direction:column; align-items:center; padding:20px;">
-            <h3>YOU ARE CAPTAIN!</h3>
+            <h3 style="color:var(--gold)">YOU ARE CAPTAIN!</h3>
             <p>Enter your Team Name:</p>
             <input type="text" id="team-name-input" placeholder="E.g. SUPER KINGS" maxlength="15">
-            <button class="btn btn-gold" onclick="submitTeamName()">SUBMIT NAME</button>
+            <button class="btn btn-gold" onclick="submitTeamName()">SUBMIT & PROCEED</button>
         </div>
 
         <div id="naming-wait-view" style="display:none; text-align:center; padding:20px; color:#aaa;">
@@ -387,7 +389,7 @@
                 state: 'LOBBY',
                 config: { overs: 1 },
                 players: { [myName]: { team: 'A', hand:[], stats:{r:0,b:0,w:0} } },
-                teams: { A: {name:"RED TEAM"}, B: {name:"BLUE TEAM"} }
+                teams: { A: {name:"RED TEAM", isNamed:false}, B: {name:"BLUE TEAM", isNamed:false} }
             });
             initListener();
         };
@@ -531,6 +533,13 @@
                     btn.style.width = '100%';
                     btn.innerText = `VOTE: ${p}`;
                     btn.style.marginBottom = '10px';
+                    // Check if I already voted
+                    if(data.votes && data.votes[p] && data.votes[p][myName]) {
+                         btn.className = "btn btn-gold";
+                         btn.disabled = true;
+                         btn.innerText = `VOTED FOR ${p}`;
+                    }
+                    
                     btn.onclick = () => {
                         update(ref(db, `rooms/${roomCode}/votes/${p}/${myName}`), true);
                         btn.className = "btn btn-gold";
@@ -545,12 +554,10 @@
         function resolveVoting(data) {
             const getCap = (team) => {
                 const mates = Object.keys(data.players).filter(p => data.players[p].team === team);
-                // Fallback to Host name if team is empty to prevent crash
                 if (mates.length === 0) return myName; 
                 return mates[Math.floor(Math.random() * mates.length)]; 
             };
             
-            // Assign Caps then move to NAMING
             update(ref(db, `rooms/${roomCode}`), {
                 state: 'NAMING',
                 'teams/A/captain': getCap('A'),
@@ -573,8 +580,8 @@
                 $('naming-wait-view').style.display = 'block';
             }
 
-            // Check if both have named (Host check)
-            if (isHost && data.teams.A.name !== "RED TEAM" && data.teams.B.name !== "BLUE TEAM") {
+            // INSTANT PROGRESSION: If both teams are named, Host triggers TOSS
+            if (isHost && data.teams.A.isNamed && data.teams.B.isNamed) {
                 update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
             }
         }
@@ -582,7 +589,12 @@
         window.submitTeamName = () => {
             const name = $('team-name-input').value.toUpperCase();
             if(!name) return;
-            update(ref(db, `rooms/${roomCode}/teams/${myTeam}/name`), name);
+            // Set name AND isNamed flag
+            let updates = {};
+            updates[`rooms/${roomCode}/teams/${myTeam}/name`] = name;
+            updates[`rooms/${roomCode}/teams/${myTeam}/isNamed`] = true;
+            update(ref(db), updates);
+            
             $('naming-captain-view').innerHTML = `<h3>NAME SUBMITTED: ${name}</h3>`;
         };
  
