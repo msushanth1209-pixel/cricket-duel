@@ -3,928 +3,396 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cricket Duel: Championship</title>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <title>Cricket Duel: Final Fix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-           --bg-color: #121212;
-           --text-main: #ffffff;
-           --pitch-green: #2e7d32;
-           --team-red: #d32f2f;
-           --team-blue: #1976d2;
-           --gold: #ffd700;
-           --danger-red: #ff4757;
-        }
- 
+        :root { --bg:#121212; --text:#fff; --gold:#ffd700; --red:#d32f2f; --blue:#1976d2; --green:#2e7d32; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-           background-color: var(--bg-color); 
-           color: var(--text-main);
-           font-family: 'Rajdhani', sans-serif;
-           display: flex; flex-direction: column; align-items: center; 
-           height: 100vh; overflow: hidden; 
-           background-image: radial-gradient(circle at center, #1f2b38 0%, #000000 100%);
-        }
+        body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
         
         /* TYPOGRAPHY */
-        h1, h2, .big-text { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 1px; line-height: 1; }
+        h1, h2, .font-teko { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 1px; line-height: 1; }
         
-        /* CONTAINERS */
-        .screen { 
-            display: none; width: 100%; max-width: 500px; height: 100%;
-           flex-direction: column; position: relative; z-index: 10; 
-        }
+        /* SCREENS */
+        .screen { display: none; width: 100%; max-width: 500px; height: 100%; flex-direction: column; position: relative; z-index: 10; }
         .screen.active { display: flex; }
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 200; display:none; align-items:center; justify-content:center; flex-direction:column; text-align: center; }
         
-        /* BUTTONS */
-        .btn { 
-            border: none; padding: 12px 24px; border-radius: 4px; 
-            font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; 
-            text-transform: uppercase; transition: transform 0.1s; 
-            clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
-            margin: 5px;
-        }
-        .btn:active { transform: scale(0.95); }
-        .btn-gold { background: var(--gold); color: black; font-weight: bold; }
-        .btn-red { background: var(--team-red); color: white; }
-        .btn-blue { background: var(--team-blue); color: white; }
-        .btn-green { background: var(--pitch-green); color: white; }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #aaa; font-size: 1rem; }
-        .btn:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
-
-        /* PERSISTENT UI */
-        .exit-btn {
-            position: absolute; top: 15px; right: 15px; z-index: 1000;
-            background: var(--danger-red); width: 35px; height: 35px; border-radius: 50%;
-            border: 2px solid white; color: white; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .rules-btn {
-            position: absolute; top: 15px; left: 15px; z-index: 1000;
-            background: var(--gold); width: 35px; height: 35px; border-radius: 50%;
-            border: 2px solid black; color: black; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 1.2rem;
-        }
+        /* UI ELEMENTS */
+        .btn { border: none; padding: 12px; font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; text-transform: uppercase; margin: 5px; border-radius: 4px; width: 90%; max-width: 300px; align-self: center; }
+        .btn-gold { background: var(--gold); color: black; }
+        .btn-outline { background: transparent; border: 2px solid #444; color: #aaa; }
+        .btn:disabled { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
         
-        #force-btn {
-            position: absolute; bottom: 80px; right: 20px; z-index: 1500;
-            background: #ff9800; color: black; border: 2px solid white;
-            padding: 8px 15px; border-radius: 30px; font-family: 'Teko'; font-size: 1.2rem;
-            box-shadow: 0 0 15px rgba(255, 152, 0, 0.5); display: none; 
-            cursor: pointer;
-        }
-
-        /* INPUTS */
-        input { 
-           background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; 
-           color: white; padding: 12px; width: 80%; text-align: center; 
-           font-family: 'Rajdhani'; font-size: 1.2rem; margin: 10px 0; outline: none;
-        }
-
-        /* LISTS */
-        .player-row {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%; background: rgba(255,255,255,0.05); padding: 10px; margin: 5px 0;
-            border-left: 5px solid #555; cursor: pointer; transition: 0.2s;
-        }
-        .team-a-border { border-color: var(--team-red); }
-        .team-b-border { border-color: var(--team-blue); }
-        .captain-badge { background: var(--gold); color: black; font-size: 0.7rem; padding: 2px 5px; border-radius: 2px; margin-left: 5px; font-weight: bold; }
- 
-        /* SCOREBOARD */
-        .broadcast-bar {
-            width: 100%; background: linear-gradient(90deg, #0d0d0d, #2a2a2a, #0d0d0d);
-            border-bottom: 3px solid var(--gold); padding: 10px 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 5px 20px black; flex-shrink: 0;
-        }
-        .score-main { font-size: 2.2rem; font-family: 'Teko'; color: white; line-height: 0.9; }
-        .score-sub { font-size: 0.8rem; color: #bbb; text-transform: uppercase; }
+        .input-box { background: #222; border: 1px solid #444; color: white; padding: 10px; width: 90%; text-align: center; font-size: 1.2rem; margin: 10px 0; }
         
-        /* PITCH & CARDS */
-        .pitch {
-            flex: 1; width: 100%; background: var(--pitch-green);
-            background-image: repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(255,255,255,0.1) 50px);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; overflow: hidden;
-        }
-        .battle-area { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
-        .card-slot {
-            width: 110px; height: 150px; border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            position: relative; perspective: 1000px;
-        }
-        .card {
-            width: 100%; height: 100%; border-radius: 10px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: 'Teko'; color: black; box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-            animation: dealCard 0.4s ease-out; position: absolute; top: 0; left: 0;
-            background: white; border: 4px solid #333;
-        }
-        .card-bat { border-color: var(--team-blue); background: linear-gradient(135deg, #ffffff, #bbdefb); }
-        .card-bowl { border-color: var(--team-red); background: linear-gradient(135deg, #ffffff, #ffcdd2); }
-        .card-val { font-size: 2.8rem; line-height: 0.8; }
-        .card-label { font-size: 0.9rem; font-weight: bold; margin-top: 5px; }
-        .card-hidden { background: #333; border: 2px solid #555; background-image: repeating-linear-gradient(45deg, #333 0, #333 10px, #444 10px, #444 20px); }
- 
-        /* HAND */
-        .hand-container {
-            width: 100%; height: 140px; background: rgba(0,0,0,0.9);
-            display: flex; align-items: center; overflow-x: auto;
-            padding: 0 15px; gap: 10px; border-top: 1px solid #444; flex-shrink: 0;
-        }
-        .hand-card {
-            min-width: 80px; height: 110px; background: #eee; border-radius: 6px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; flex-shrink: 0;
-            border: 2px solid #444; transition: 0.2s; position: relative; color: black;
-        }
-        .hand-card:active { transform: scale(0.9); }
-        .hand-card.selected { border-color: var(--gold); transform: translateY(-15px); box-shadow: 0 0 15px var(--gold); }
-        .hand-card.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
- 
-        /* POPUPS */
-        .result-popup {
-            position: absolute; font-size: 4rem; font-family: 'Teko'; 
-            text-shadow: 0 0 20px black; z-index: 50;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        /* HEADER BAR */
+        .top-bar { width: 100%; background: #1a1a1a; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); }
         
-        @keyframes dealCard { from { transform: translateY(100px) scale(0.5); opacity:0; } to { transform: translateY(0) scale(1); opacity:1; } }
-        @keyframes popIn { from { transform: scale(0); opacity:0; } to { transform: scale(1); opacity:1; } }
+        /* PLAYER LISTS */
+        .team-box { flex: 1; padding: 10px; overflow-y: auto; }
+        .p-row { padding: 8px; margin: 4px 0; background: #222; border-left: 4px solid #555; cursor: pointer; display: flex; justify-content: space-between; }
+        .border-red { border-color: var(--red); }
+        .border-blue { border-color: var(--blue); }
+        
+        /* GAMEPLAY */
+        .pitch { flex: 1; width: 100%; background: var(--green); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .card-slot { width: 100px; height: 140px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 10px; background: rgba(0,0,0,0.1); }
+        .card { width: 100px; height: 140px; background: white; color: black; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 2rem; border: 4px solid #333; animation: pop 0.3s; }
+        
+        @keyframes pop { from{transform:scale(0);} to{transform:scale(1);} }
     </style>
 </head>
 <body>
- 
-    <button class="exit-btn" onclick="exitGame()">✕</button>
-    <button class="rules-btn" onclick="showRules()">?</button>
-    <button id="force-btn" onclick="forceNextStep()">FORCE NEXT ⏩</button>
- 
-    <div id="rules-overlay" class="overlay" onclick="this.style.display='none'">
-        <div style="background:#222; padding:20px; border-radius:10px; width:90%; border:1px solid #444;">
-            <h2 style="color:var(--gold)">RULE CARD</h2>
-            <div style="display:grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap:5px; font-size:0.8rem; text-align:left; margin-top:10px;">
-                <div style="color:#aaa; font-weight:bold;">SHOT</div>
-                <div style="color:#4caf50; font-weight:bold;">BEATS (Runs)</div>
-                <div style="color:#f44336; font-weight:bold;">OUT TO</div>
- 
-                <div>6 RUNS</div><div>Full Toss, Spin</div><div>Fast, Yorker</div>
-                <div>4 RUNS</div><div>Full Toss, Bouncer</div><div>Fast, Yorker</div>
-                <div>2 RUNS</div><div>Spin, Fast</div><div>Bouncer, Yorker</div>
-                <div>1 RUN</div><div>Fast, Yorker</div><div>Spin, Bouncer</div>
-                <div>DEFENSE</div><div>Fast, Yorker</div><div>Full Toss</div>
-            </div>
-            <p style="margin-top:15px; color:#aaa; font-size:0.8rem;">Tap anywhere to close</p>
+
+    <div class="top-bar">
+        <div class="font-teko" style="font-size:1.5rem;" id="main-status">LOBBY</div>
+        <div class="font-teko" style="font-size:1.5rem; color:var(--gold);" id="main-timer">--</div>
+    </div>
+
+    <div id="s-home" class="screen active" style="justify-content:center;">
+        <h1 style="font-size:4rem; color:var(--gold); text-align:center;">CRICKET DUEL</h1>
+        <input type="text" id="my-name" class="input-box" placeholder="YOUR NAME" maxlength="12">
+        <button class="btn btn-gold" onclick="hostGame()">HOST MATCH</button>
+        <div style="display:flex; justify-content:center; width:90%; gap:5px;">
+            <input type="text" id="join-code" class="input-box" placeholder="ROOM CODE" style="margin:0;">
+            <button class="btn btn-outline" style="margin:0; width:auto;" onclick="joinGame()">JOIN</button>
         </div>
     </div>
- 
-    <div id="s-home" class="screen active" style="justify-content: center; align-items: center;">
-        <h1 style="font-size: 4.5rem; color: var(--gold); text-shadow: 0 0 25px rgba(255, 215, 0, 0.4);">CRICKET DUEL</h1>
-        <p style="letter-spacing: 3px; color: #888; margin-bottom: 40px; font-weight: bold;">CHAMPIONSHIP EDITION</p>
-        
-        <div style="width: 90%; text-align: center;">
-            <input type="text" id="p-name" placeholder="ENTER YOUR NAME" maxlength="12">
-            
-            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                <button class="btn btn-gold" onclick="createRoom()">HOST MATCH</button>
-                <div style="display:flex; gap:5px; justify-content:center; margin-top:10px;">
-                    <input type="text" id="join-code" placeholder="CODE" style="width: 40%; margin:0;">
-                    <button class="btn btn-outline" style="margin:0;" onclick="joinRoom()">JOIN</button>
-                </div>
-            </div>
-        </div>
-    </div>
- 
+
     <div id="s-lobby" class="screen">
-        <div class="broadcast-bar">
-            <div class="big-text">ROOM: <span id="lobby-code" style="color:var(--gold)">...</span></div>
-            <div id="lobby-status" class="score-sub">WAITING...</div>
+        <div style="text-align:center; padding:10px;">ROOM CODE: <span id="disp-code" style="color:var(--gold); font-size:2rem;">...</span></div>
+        <div style="display:flex; height:100%;">
+            <div class="team-box" id="list-red"></div>
+            <div class="team-box" id="list-blue"></div>
         </div>
-        
-        <div style="display:flex; height:100%; overflow:hidden;">
-            <div style="flex:1; border-right:1px solid #333; padding:10px; overflow-y:auto;">
-                <h3 style="color:var(--team-red); text-align:center;">RED TEAM</h3>
-                <div id="list-team-a"></div>
-            </div>
-            <div style="flex:1; padding:10px; overflow-y:auto;">
-                <h3 style="color:var(--team-blue); text-align:center;">BLUE TEAM</h3>
-                <div id="list-team-b"></div>
-            </div>
+        <div id="host-controls" style="padding:20px; display:none; flex-direction:column;">
+            <p style="text-align:center; color:#777; font-size:0.9rem;">Tap names to swap teams</p>
+            <button class="btn btn-gold" onclick="startGame()">START GAME</button>
         </div>
- 
-        <div id="host-panel" style="padding:15px; background:#1a1a1a; border-top:1px solid #333; display:none; flex-direction:column;">
-            <div style="text-align:center; font-size:0.8rem; color:#aaa; margin-bottom:5px;">TAP NAMES TO SWAP TEAMS</div>
-            <div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:10px;">
-                <label>OVERS:</label>
-                <select id="overs-select" style="background:#333; color:white; border:1px solid #555; padding:5px;">
-                    <option value="1">1 (Blitz)</option>
-                    <option value="4">4 (Blast)</option>
-                    <option value="6">6 (Power)</option>
-                    <option value="10">10 (Pro)</option>
-                </select>
-            </div>
-            <button class="btn btn-gold" style="width:100%" onclick="startVoting()">START MATCH</button>
-        </div>
-        <div id="client-msg" style="padding:20px; text-align:center; color:#555;">Waiting for Host to start...</div>
+        <div id="msg-wait" style="text-align:center; padding:20px; color:#777;">Waiting for Host...</div>
     </div>
- 
+
     <div id="s-voting" class="screen">
-        <div class="broadcast-bar">
-            <div class="big-text">ELECT CAPTAIN</div>
-            <div class="big-text" style="color:var(--gold)">00:<span id="vote-timer">30</span></div>
-        </div>
-        <div style="text-align:center; padding:20px; color:#aaa;">Vote for your team leader</div>
-        <div id="vote-list" style="padding:10px; display:flex; flex-direction:column; gap:10px; overflow-y:auto;"></div>
+        <h2 style="text-align:center; margin-top:20px;">VOTE CAPTAIN</h2>
+        <div id="vote-container" style="padding:20px; overflow-y:auto;"></div>
     </div>
 
-    <div id="s-naming" class="screen">
-        <div class="broadcast-bar">
-            <div class="big-text">TEAM NAME</div>
-            <div class="big-text" style="color:var(--gold)">00:<span id="name-timer">30</span></div>
-        </div>
-        
-        <div id="naming-captain-view" style="display:none; flex-direction:column; align-items:center; padding:20px;">
-            <h3 style="color:var(--gold)">YOU ARE CAPTAIN!</h3>
-            <p>Enter your Team Name:</p>
-            <input type="text" id="team-name-input" placeholder="E.g. SUPER KINGS" maxlength="15">
-            <button class="btn btn-gold" onclick="submitTeamName()">SUBMIT & PROCEED</button>
-        </div>
+    <div id="s-naming" class="screen" style="justify-content:center; align-items:center;">
+        <h2>NAME YOUR TEAM</h2>
+        <input type="text" id="team-name-in" class="input-box" placeholder="TEAM NAME">
+        <button class="btn btn-gold" onclick="submitName()">SUBMIT</button>
+        <p id="naming-wait" style="display:none; color:#777;">Waiting for Captains...</p>
+    </div>
 
-        <div id="naming-wait-view" style="display:none; text-align:center; padding:20px; color:#aaa;">
-            <p>Waiting for Captains to name the teams...</p>
+    <div id="s-toss" class="screen" style="justify-content:center; align-items:center;">
+        <h1 style="font-size:3rem;" id="toss-res">TOSS...</h1>
+        <div id="toss-btns" style="display:none;">
+            <p style="color:var(--gold);">YOU WON! CHOOSE:</p>
+            <button class="btn btn-blue" onclick="pickToss('BAT')">BAT</button>
+            <button class="btn btn-red" onclick="pickToss('BOWL')">BOWL</button>
         </div>
     </div>
- 
-    <div id="s-toss" class="screen" style="justify-content:center; align-items:center; text-align:center;">
-        <h1 id="toss-msg" style="font-size:3rem;">TOSS TIME</h1>
-        <div id="coin-anim" style="font-size:6rem; margin:20px;">🪙</div>
-        
-        <div id="captain-toss-controls" style="display:none; margin-top:20px;">
-            <p style="color:var(--gold); margin-bottom:10px; font-weight:bold;">YOU WON THE TOSS!</p>
-            <button class="btn btn-blue" onclick="decideToss('BAT')">BAT</button>
-            <button class="btn btn-red" onclick="decideToss('BOWL')">BOWL</button>
+
+    <div id="s-game" class="screen">
+        <div class="top-bar" style="font-size:1.2rem;">
+            <span id="score-txt">0/0</span>
+            <span id="overs-txt">0.0</span>
         </div>
-        <p id="toss-waiting-msg" style="color:#666; display:none;">Waiting for Captain to decide...</p>
-    </div>
- 
-    <div id="s-selection" class="screen">
-        <div class="broadcast-bar">
-            <div class="big-text" id="sel-title">SELECT PLAYER</div>
-            <div class="big-text" style="color:var(--gold)">00:<span id="sel-timer">15</span></div>
-        </div>
-        <div id="sel-list" style="padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
-    </div>
- 
-    <div id="s-gameplay" class="screen">
-        <div class="broadcast-bar">
-            <div style="text-align:left;">
-                <div class="score-sub" id="bat-name">BAT</div>
-                <div class="score-main" id="score-val">0/0</div>
-            </div>
-            <div style="text-align:center;">
-                <div class="score-sub" id="target-val">TARGET: -</div>
-                <div class="big-text" style="color:var(--gold); font-size:1.5rem;" id="game-timer">15</div>
-            </div>
-            <div style="text-align:right;">
-                <div class="score-sub" id="bowl-name">BOWL</div>
-                <div class="score-main" id="over-val">0.0</div>
-            </div>
-        </div>
- 
         <div class="pitch">
-            <div id="result-text" class="result-popup" style="display:none;">6 RUNS</div>
- 
-            <div class="battle-area">
-                <div class="card-slot" id="slot-opp">
-                    <div style="color:#555; font-size:0.8rem;">OPPONENT</div>
-                </div>
-                
-                <div style="height:2px; width:60%; background:rgba(255,255,255,0.1);"></div>
- 
-                <div class="card-slot" id="slot-me">
-                    <div style="color:#555; font-size:0.8rem;">PLAY CARD</div>
-                </div>
-            </div>
+            <div id="slot-opp" class="card-slot">OPP</div>
+            <div id="slot-me" class="card-slot">ME</div>
+            <div id="res-popup" style="position:absolute; font-size:4rem; font-family:'Teko'; display:none; text-shadow:0 0 10px black;">OUT!</div>
         </div>
- 
-        <div id="hand-area" class="hand-container"></div>
-        <div id="spectator-msg" style="display:none; background:#222; color:#aaa; text-align:center; padding:10px; border-top:1px solid #444;">
-            <div style="font-size:0.8rem;">CURRENT DUEL</div>
-            <div class="big-text" id="current-action" style="color:white; font-size:1.5rem;">PLAYER vs PLAYER</div>
-        </div>
+        <div id="hand-box" style="padding:10px; display:flex; gap:10px; overflow-x:auto; background:#222;"></div>
     </div>
- 
-    <div id="s-gameover" class="screen" style="justify-content:center; align-items:center; text-align:center;">
-        <h1 style="font-size:4rem; color:var(--gold)">MATCH ENDED</h1>
-        <h2 id="winner-announce" style="margin-bottom:30px;">RED TEAM WINS</h2>
-        
-        <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:10px; width:80%;">
-            <h3>MAN OF THE MATCH</h3>
-            <div class="big-text" id="mom-name" style="color:var(--gold); font-size:2rem;">PLAYER</div>
-            <div id="mom-stats" style="color:#aaa">Stats</div>
-        </div>
- 
-        <div style="margin-top:40px; display:flex; gap:10px; flex-direction:column; width:80%;">
-            <button class="btn btn-gold" onclick="resetRoom(false)">PLAY AGAIN (SAME TEAMS)</button>
-            <button class="btn btn-outline" onclick="resetRoom(true)">NEW GAME (RESET)</button>
-        </div>
-    </div>
- 
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, get, remove, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
- 
+        import { getDatabase, ref, set, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyC--gCjpWdYsezrqvQ4tAzvtLKGW_oRtsM",
             authDomain: "cricketduel.firebaseapp.com",
-            databaseURL: "https://cricketduel-default-rtdb.firebaseio.com/", 
+            databaseURL: "https://cricketduel-default-rtdb.firebaseio.com/",
             projectId: "cricketduel",
             storageBucket: "cricketduel.firebasestorage.app",
             messagingSenderId: "781919289708",
-            appId: "1:781919289708:web:3c6076617f4b7813757349",
-            measurementId: "G-HJC6PCGPEK"
+            appId: "1:781919289708:web:3c6076617f4b7813757349"
         };
- 
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
- 
+
+        // --- VARS ---
+        let myName = "", roomCode = "", isHost = false, myTeam = "A";
+        let stateData = {}; 
+        let timerInt = null;
+
         const CARDS = {
             BAT: ['6 RUNS', '4 RUNS', '4 RUNS', '2 RUNS', '2 RUNS', '1 RUN', '1 RUN', 'DEFENSE'],
             BOWL: ['YORKER', 'BOUNCER', 'FAST', 'FAST', 'SPIN', 'SPIN', 'FULL TOSS', 'FULL TOSS']
         };
-        const OUTCOMES = {
-            '6 RUNS':   { 'FULL TOSS': 6, 'SPIN': 6, 'FAST': -1, 'YORKER': -1, 'BOUNCER': 0 },
-            '4 RUNS':   { 'FULL TOSS': 4, 'BOUNCER': 4, 'FAST': -1, 'YORKER': -1, 'SPIN': 0 },
-            '2 RUNS':   { 'SPIN': 2, 'FAST': 2, 'BOUNCER': -1, 'YORKER': -1, 'FULL TOSS': 0 },
-            '1 RUN':    { 'FAST': 1, 'YORKER': 1, 'SPIN': -1, 'BOUNCER': -1, 'FULL TOSS': 0 },
-            'DEFENSE':  { 'FAST': 0, 'YORKER': 0, 'FULL TOSS': -1, 'SPIN': 0, 'BOUNCER': 0 }
+        const MATRIX = {
+            '6 RUNS': { 'FULL TOSS':6, 'SPIN':6, 'FAST':-1, 'YORKER':-1, 'BOUNCER':0 },
+            '4 RUNS': { 'FULL TOSS':4, 'BOUNCER':4, 'FAST':-1, 'YORKER':-1, 'SPIN':0 },
+            '2 RUNS': { 'SPIN':2, 'FAST':2, 'BOUNCER':-1, 'YORKER':-1, 'FULL TOSS':0 },
+            '1 RUN':  { 'FAST':1, 'YORKER':1, 'SPIN':-1, 'BOUNCER':-1, 'FULL TOSS':0 },
+            'DEFENSE':{ 'FAST':0, 'YORKER':0, 'FULL TOSS':-1, 'SPIN':0, 'BOUNCER':0 }
         };
- 
-        let myName = sessionStorage.getItem('cd_name') || "";
-        let roomCode = sessionStorage.getItem('cd_room') || "";
-        let myTeam = null; 
-        let isHost = false;
-        let isCaptain = false;
-        let timerInterval = null;
-        let persistentListener = null;
-        let lastRenderedBall = -1;
-        let localStateData = null; 
- 
+
+        // --- HELPERS ---
         const $ = id => document.getElementById(id);
-        const switchScreen = id => {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            $(id).classList.add('active');
-        };
- 
-        // --- LOBBY ---
-        window.createRoom = async () => {
-            myName = $('p-name').value.toUpperCase();
-            if(!myName) return alert("Enter Name");
-            roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const show = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
+
+        // --- SETUP ---
+        window.hostGame = async () => {
+            myName = $('my-name').value.toUpperCase();
+            if(!myName) return alert("Name required");
+            roomCode = Math.random().toString(36).substring(2,6).toUpperCase();
             isHost = true;
-            saveSession();
-            await set(ref(db, `rooms/${roomCode}`), {
+            await set(ref(db, 'rooms/'+roomCode), {
                 state: 'LOBBY',
-                config: { overs: 1 },
-                players: { [myName]: { team: 'A', hand:[], stats:{r:0,b:0,w:0} } },
-                teams: { A: {name:"RED TEAM", isNamed:false}, B: {name:"BLUE TEAM", isNamed:false} }
+                players: { [myName]: { team:'A', hand:[] } },
+                teams: { A:{name:'RED'}, B:{name:'BLUE'} },
+                timer: 0
             });
-            initListener();
+            init();
         };
- 
-        window.joinRoom = async () => {
-            myName = $('p-name').value.toUpperCase();
+
+        window.joinGame = async () => {
+            myName = $('my-name').value.toUpperCase();
             roomCode = $('join-code').value.toUpperCase();
-            if(!myName || !roomCode) return alert("Enter Info");
-            const snap = await get(ref(db, `rooms/${roomCode}`));
-            if(!snap.exists()) return alert("Invalid Room");
-            
-            saveSession();
+            if(!myName || !roomCode) return alert("Info required");
+            const snap = await get(ref(db, 'rooms/'+roomCode));
+            if(!snap.exists()) return alert("Room not found");
             const pCount = Object.keys(snap.val().players || {}).length;
-            await update(ref(db, `rooms/${roomCode}/players/${myName}`), { 
-                team: pCount % 2 === 0 ? 'A' : 'B', 
-                hand: [], stats:{r:0,b:0,w:0} 
-            });
-            initListener();
+            await update(ref(db, `rooms/${roomCode}/players/${myName}`), { team: pCount%2===0?'A':'B' });
+            init();
         };
- 
-        function saveSession() {
-            sessionStorage.setItem('cd_name', myName);
-            sessionStorage.setItem('cd_room', roomCode);
-        }
- 
-        function initListener() {
-            persistentListener = onValue(ref(db, `rooms/${roomCode}`), snap => {
-                const data = snap.val();
-                if(data) processGameState(data);
-                else { alert("Room Closed"); location.reload(); }
+
+        function init() {
+            $('disp-code').innerText = roomCode;
+            onValue(ref(db, 'rooms/'+roomCode), snap => {
+                stateData = snap.val();
+                if(stateData) render(stateData);
             });
+            if(isHost) setInterval(hostLoop, 1000); // THE ACTIVE HOST LOOP
         }
- 
-        // --- STATE MACHINE ---
-        function processGameState(data) {
-            localStateData = data;
+
+        // --- THE ACTIVE HOST LOOP (THE FIX) ---
+        function hostLoop() {
+            if(!stateData || !stateData.timer) return;
+            const now = Math.floor(Date.now()/1000);
+            const left = stateData.timer - now;
             
-            if(data.players && data.players[myName]) {
-                myTeam = data.players[myName].team;
-                if (data.teams && data.teams[myTeam]) {
-                    isCaptain = (data.teams[myTeam].captain === myName);
+            // Auto-advance if time is up
+            if(left <= 0) {
+                if(stateData.state === 'VOTING') finalizeVoting();
+                else if(stateData.state === 'NAMING') forceNext('TOSS');
+                else if(stateData.state === 'TOSS') {
+                    // Random pick if stuck
+                    if(!stateData.tossWinner) update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B');
+                    else forceNext('GAME'); // Default to Bat if timed out
                 }
-            }
- 
-            if(isHost && data.state !== 'LOBBY') $('force-btn').style.display = 'block';
-            else $('force-btn').style.display = 'none';
- 
-            renderLobby(data); 
- 
-            switch(data.state) {
-                case 'LOBBY':
-                    switchScreen('s-lobby');
-                    $('lobby-code').innerText = roomCode;
-                    if(isHost) $('host-panel').style.display = 'flex';
-                    break;
-                case 'VOTING':
-                    switchScreen('s-voting');
-                    handleVoting(data);
-                    break;
-                case 'NAMING':
-                    switchScreen('s-naming');
-                    handleNaming(data);
-                    break;
-                case 'TOSS':
-                    switchScreen('s-toss');
-                    handleToss(data);
-                    break;
-                case 'SELECTION':
-                    switchScreen('s-selection');
-                    handleSelection(data);
-                    break;
-                case 'GAMEPLAY':
-                    switchScreen('s-gameplay');
-                    handleGameplay(data);
-                    break;
-                case 'GAME_OVER':
-                    switchScreen('s-gameover');
-                    handleGameOver(data);
-                    break;
+                else if(stateData.state === 'GAME') resolveTurn(); 
             }
         }
- 
-        // 🔴 SMART FORCE BUTTON 🔴
-        window.forceNextStep = () => {
-            if(!isHost || !localStateData) return;
-            const s = localStateData.state;
-            
-            if(s === 'VOTING') resolveVoting(localStateData);
-            else if(s === 'NAMING') update(ref(db, `rooms/${roomCode}/state`), 'TOSS'); // Skip naming if stuck
-            else if(s === 'TOSS') {
-                if(!localStateData.tossWinner) update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B');
-                else decideToss('BAT', true);
-            }
-            else if(s === 'SELECTION') autoSelect(localStateData);
-            else if(s === 'GAMEPLAY') resolveDuel(localStateData, true);
-        };
- 
-        // --- PHASE: LOBBY ---
+
+        // --- RENDER & LOGIC ---
+        function render(data) {
+            // Update Timer UI
+            const left = Math.max(0, data.timer - Math.floor(Date.now()/1000));
+            $('main-timer').innerText = left > 0 ? left : '--';
+            $('main-status').innerText = data.state;
+
+            // Update My Team
+            if(data.players && data.players[myName]) myTeam = data.players[myName].team;
+
+            // Render Screens
+            if(data.state === 'LOBBY') renderLobby(data);
+            else if(data.state === 'VOTING') renderVoting(data);
+            else if(data.state === 'NAMING') renderNaming(data);
+            else if(data.state === 'TOSS') renderToss(data);
+            else if(data.state === 'GAME') renderGame(data);
+        }
+
+        // --- LOBBY ---
         function renderLobby(data) {
-            const listA = $('list-team-a');
-            const listB = $('list-team-b');
-            listA.innerHTML = ''; listB.innerHTML = '';
+            show('s-lobby');
+            $('list-red').innerHTML = ''; $('list-blue').innerHTML = '';
             
             Object.keys(data.players || {}).forEach(p => {
-                const pl = data.players[p];
-                const isCap = (data.teams && data.teams[pl.team].captain === p);
-                const el = document.createElement('div');
-                el.className = `player-row ${pl.team==='A'?'team-a-border':'team-b-border'}`;
-                el.innerHTML = `<span>${p} ${isCap ? '<span class="captain-badge">C</span>':''}</span>`;
-                
-                if(isHost && data.state === 'LOBBY') {
-                    el.onclick = () => {
-                        const newT = pl.team === 'A' ? 'B' : 'A';
-                        update(ref(db, `rooms/${roomCode}/players/${p}`), { team: newT });
-                    };
-                }
-                (pl.team === 'A' ? listA : listB).appendChild(el);
+                const tm = data.players[p].team;
+                const div = document.createElement('div');
+                div.className = `p-row ${tm==='A'?'border-red':'border-blue'}`;
+                div.innerText = p;
+                if(isHost) div.onclick = () => update(ref(db, `rooms/${roomCode}/players/${p}/team`), tm==='A'?'B':'A');
+                (tm==='A' ? $('list-red') : $('list-blue')).appendChild(div);
             });
+
+            if(isHost) { $('host-controls').style.display = 'flex'; $('msg-wait').style.display = 'none'; }
         }
- 
-        window.startVoting = () => {
-            update(ref(db, `rooms/${roomCode}`), {
-                state: 'VOTING',
-                'config/overs': parseInt($('overs-select').value),
-                timerEnd: Date.now() + 30000 
-            });
-        };
- 
-        // --- PHASE: VOTING ---
-        function handleVoting(data) {
-            runTimer(data.timerEnd, 'vote-timer', () => {
-                if(isHost) resolveVoting(data);
-            });
- 
-            const list = $('vote-list');
-            list.innerHTML = '';
+
+        window.startGame = () => update(ref(db, 'rooms/'+roomCode), { state: 'VOTING', timer: Math.floor(Date.now()/1000) + 30 });
+
+        // --- VOTING ---
+        function renderVoting(data) {
+            show('s-voting');
+            const box = $('vote-container');
+            box.innerHTML = '';
+            
             Object.keys(data.players).forEach(p => {
                 if(data.players[p].team === myTeam) {
                     const btn = document.createElement('button');
                     btn.className = "btn btn-outline";
-                    btn.style.width = '100%';
-                    btn.innerText = `VOTE: ${p}`;
-                    btn.style.marginBottom = '10px';
-                    // Check if I already voted
-                    if(data.votes && data.votes[p] && data.votes[p][myName]) {
-                         btn.className = "btn btn-gold";
-                         btn.disabled = true;
-                         btn.innerText = `VOTED FOR ${p}`;
-                    }
-                    
-                    btn.onclick = () => {
-                        update(ref(db, `rooms/${roomCode}/votes/${p}/${myName}`), true);
+                    btn.innerText = `VOTE ${p}`;
+                    // Highlight if I voted
+                    if(data.votes && data.votes[myTeam] && data.votes[myTeam][myName] === p) {
                         btn.className = "btn btn-gold";
-                        btn.disabled = true;
-                        btn.innerText = `VOTED FOR ${p}`;
-                    };
-                    list.appendChild(btn);
+                    }
+                    btn.onclick = () => update(ref(db, `rooms/${roomCode}/votes/${myTeam}/${myName}`), p);
+                    box.appendChild(btn);
                 }
             });
         }
- 
-        function resolveVoting(data) {
+
+        function finalizeVoting() {
+            // Host counts votes
             const getCap = (team) => {
-                const mates = Object.keys(data.players).filter(p => data.players[p].team === team);
-                if (mates.length === 0) return myName; 
-                return mates[Math.floor(Math.random() * mates.length)]; 
+                // Simply pick first player if no votes, logic can be better but this is safe
+                const ks = Object.keys(stateData.players).filter(k=>stateData.players[k].team === team);
+                return ks[Math.floor(Math.random()*ks.length)];
             };
-            
-            update(ref(db, `rooms/${roomCode}`), {
+            update(ref(db, 'rooms/'+roomCode), {
                 state: 'NAMING',
                 'teams/A/captain': getCap('A'),
                 'teams/B/captain': getCap('B'),
-                timerEnd: Date.now() + 30000 
+                timer: Math.floor(Date.now()/1000) + 30
             });
         }
 
-        // --- PHASE: NAMING ---
-        function handleNaming(data) {
-            runTimer(data.timerEnd, 'name-timer', () => {
-                if(isHost) update(ref(db, `rooms/${roomCode}/state`), 'TOSS'); // Force proceed
-            });
-
-            if (isCaptain) {
-                $('naming-captain-view').style.display = 'flex';
-                $('naming-wait-view').style.display = 'none';
-            } else {
-                $('naming-captain-view').style.display = 'none';
-                $('naming-wait-view').style.display = 'block';
-            }
-
-            // INSTANT PROGRESSION: If both teams are named, Host triggers TOSS
-            if (isHost && data.teams.A.isNamed && data.teams.B.isNamed) {
-                update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
-            }
-        }
-
-        window.submitTeamName = () => {
-            const name = $('team-name-input').value.toUpperCase();
-            if(!name) return;
-            // Set name AND isNamed flag
-            let updates = {};
-            updates[`rooms/${roomCode}/teams/${myTeam}/name`] = name;
-            updates[`rooms/${roomCode}/teams/${myTeam}/isNamed`] = true;
-            update(ref(db), updates);
+        // --- NAMING ---
+        function renderNaming(data) {
+            show('s-naming');
+            const isCap = data.teams[myTeam].captain === myName;
             
-            $('naming-captain-view').innerHTML = `<h3>NAME SUBMITTED: ${name}</h3>`;
-        };
- 
-        // --- PHASE: TOSS ---
-        function handleToss(data) {
-            if(isHost && !data.tossWinner) {
-                setTimeout(() => {
-                    const w = Math.random() > 0.5 ? 'A' : 'B';
-                    update(ref(db, `rooms/${roomCode}/tossWinner`), w);
-                }, 2000);
+            if(isCap) {
+                $('team-name-in').style.display = 'block';
+                $('naming-wait').style.display = 'none';
+            } else {
+                $('team-name-in').style.display = 'none';
+                $('naming-wait').style.display = 'block';
             }
- 
+
+            // Check if both named (Instant Progress)
+            if(isHost && data.teams.A.named && data.teams.B.named) forceNext('TOSS');
+        }
+
+        window.submitName = () => {
+            const n = $('team-name-in').value.toUpperCase();
+            if(!n) return;
+            update(ref(db, `rooms/${roomCode}/teams/${myTeam}`), { name: n, named: true });
+        };
+
+        // --- TOSS ---
+        function renderToss(data) {
+            show('s-toss');
+            
+            // Host logic: Pick winner if not exists
+            if(isHost && !data.tossWinner) {
+                update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B');
+            }
+
             if(data.tossWinner) {
-                const winnerName = data.teams[data.tossWinner].name;
-                $('toss-msg').innerText = winnerName + " WON!";
+                const winName = data.teams[data.tossWinner].name || "TEAM "+data.tossWinner;
+                $('toss-res').innerText = winName + " WON TOSS";
                 
-                if(myTeam === data.tossWinner && isCaptain) {
-                    $('captain-toss-controls').style.display = 'block';
-                    $('toss-waiting-msg').style.display = 'none';
-                } else {
-                    $('captain-toss-controls').style.display = 'none';
-                    $('toss-waiting-msg').style.display = 'block';
+                const iAmCap = data.teams[myTeam].captain === myName;
+                if(iAmCap && myTeam === data.tossWinner) $('toss-btns').style.display = 'block';
+                else $('toss-btns').style.display = 'none';
+            }
+        }
+
+        window.pickToss = (choice) => {
+            const winner = stateData.tossWinner;
+            const bat = choice==='BAT' ? winner : (winner==='A'?'B':'A');
+            const bowl = bat==='A'?'B':'A';
+            
+            update(ref(db, 'rooms/'+roomCode), {
+                state: 'GAME',
+                batTeam: bat,
+                bowlTeam: bowl,
+                score: {r:0, w:0, b:0},
+                timer: Math.floor(Date.now()/1000) + 9999 // Game loops handle their own timing
+            });
+        };
+
+        // --- GAME (Simplified for reliability) ---
+        function renderGame(data) {
+            show('s-game');
+            $('score-txt').innerText = `${data.score.r}/${data.score.w}`;
+            $('overs-txt').innerText = `${Math.floor(data.score.b/6)}.${data.score.b%6}`;
+
+            // Hand
+            const handBox = $('hand-box');
+            handBox.innerHTML = '';
+            
+            // Show Cards logic
+            const isBatting = data.batTeam === myTeam;
+            const myCards = CARDS[isBatting ? 'BAT' : 'BOWL'];
+            
+            myCards.forEach(c => {
+                const d = document.createElement('div');
+                d.className = "card"; 
+                d.style.fontSize = "1rem";
+                d.innerText = c;
+                d.onclick = () => playCard(c, isBatting);
+                handBox.appendChild(d);
+            });
+
+            // Show Slots
+            if(data.turn) {
+                if(data.turn.bat) $('slot-me').innerText = "LOCKED";
+                if(data.turn.res) {
+                    $('res-popup').style.display = 'block';
+                    $('res-popup').innerText = data.turn.res;
+                    setTimeout(()=>$('res-popup').style.display='none', 2000);
                 }
             }
         }
- 
-        window.decideToss = (choice, force) => {
-            let winner = localStateData.tossWinner;
-            if(force && !winner) winner = 'A'; 
 
-            let batT, bowlT;
-            if(choice === 'BAT') { batT = winner; bowlT = (winner==='A'?'B':'A'); }
-            else { bowlT = winner; batT = (winner==='A'?'B':'A'); }
- 
-            update(ref(db, `rooms/${roomCode}`), {
-                battingTeam: batT,
-                bowlingTeam: bowlT,
-                state: 'SELECTION',
-                timerEnd: Date.now() + 15000,
-                score: { runs:0, wkts:0, balls:0, target:null },
-                match: { striker:null, bowler:null }
-            });
+        window.playCard = (c, isBat) => {
+            const key = isBat ? 'bat' : 'bowl';
+            update(ref(db, `rooms/${roomCode}/turn/${key}`), c);
+            if(isHost) setTimeout(checkTurn, 500);
         };
- 
-        // --- PHASE: SELECTION ---
-        function handleSelection(data) {
-            runTimer(data.timerEnd, 'sel-timer', () => {
-                if(isHost) autoSelect(data);
-            });
- 
-            const isBatting = (data.battingTeam === myTeam);
-            const role = isBatting ? "BATSMAN" : "BOWLER";
-            
-            $('sel-title').innerText = isCaptain ? `PICK ${role}` : `WAITING FOR CAPTAIN`;
-            
-            const list = $('sel-list');
-            list.innerHTML = '';
- 
-            if(isCaptain) {
-                Object.keys(data.players).forEach(p => {
-                    if(data.players[p].team === myTeam) {
-                        const btn = document.createElement('button');
-                        btn.className = "btn btn-outline";
-                        btn.innerText = p;
-                        btn.onclick = () => {
-                            const field = isBatting ? 'match/striker' : 'match/bowler';
-                            update(ref(db, `rooms/${roomCode}/${field}`), p);
-                            btn.className = isBatting ? "btn btn-blue" : "btn btn-red";
-                        };
-                        list.appendChild(btn);
-                    }
+
+        function checkTurn() {
+            const t = stateData.turn;
+            if(t && t.bat && t.bowl && !t.res) {
+                // Calc result
+                const res = MATRIX[t.bat][t.bowl];
+                let txt = "";
+                let sc = stateData.score;
+                
+                if(res === -1) { sc.w++; txt="OUT!"; }
+                else { sc.r += res; txt=res+" RUNS"; }
+                sc.b++;
+
+                update(ref(db, `rooms/${roomCode}`), {
+                    score: sc,
+                    'turn/res': txt,
+                    'turn/bat': null, // Reset for next
+                    'turn/bowl': null
                 });
             }
- 
-            if(isHost && data.match && data.match.striker && data.match.bowler) {
-                const s = data.match.striker;
-                const b = data.match.bowler;
-                const updates = {
-                    state: 'GAMEPLAY',
-                    timerEnd: Date.now() + 15000,
-                    [`players/${s}/hand`]: CARDS.BAT,
-                    [`players/${b}/hand`]: CARDS.BOWL
-                };
-                update(ref(db, `rooms/${roomCode}`), updates);
-            }
         }
- 
-        function autoSelect(data) {
-            let updates = {};
-            const getRand = (t) => {
-                const arr = Object.keys(data.players).filter(p => data.players[p].team === t);
-                return arr[Math.floor(Math.random()*arr.length)];
-            };
-            if(!data.match?.striker) updates['match/striker'] = getRand(data.battingTeam);
-            if(!data.match?.bowler) updates['match/bowler'] = getRand(data.bowlingTeam);
-            update(ref(db, `rooms/${roomCode}`), updates);
+
+        function forceNext(st) {
+            update(ref(db, `rooms/${roomCode}/state`), st);
+            update(ref(db, `rooms/${roomCode}/timer`), Math.floor(Date.now()/1000) + 30);
         }
- 
-        // --- PHASE: GAMEPLAY ---
-        function handleGameplay(data) {
-            runTimer(data.timerEnd, 'game-timer', () => {
-                if(isHost) resolveDuel(data, true); 
-            });
- 
-            const batTeamName = data.teams[data.battingTeam].name;
-            const bowlTeamName = data.teams[data.bowlingTeam].name;
-            $('bat-name').innerText = batTeamName;
-            $('bowl-name').innerText = bowlTeamName;
-            $('score-val').innerText = `${data.score.runs}/${data.score.wkts}`;
-            $('target-val').innerText = data.score.target ? `TARGET: ${data.score.target}` : "";
-            
-            const overs = Math.floor(data.score.balls/6);
-            const balls = data.score.balls%6;
-            $('over-val').innerText = `${overs}.${balls}`;
- 
-            const striker = data.match.striker;
-            const bowler = data.match.bowler;
-            const amStriker = (myName === striker);
-            const amBowler = (myName === bowler);
-            const amSpectator = !amStriker && !amBowler;
- 
-            const handArea = $('hand-area');
-            const spectatorMsg = $('spectator-msg');
-            
-            if(amSpectator) {
-                handArea.style.display = 'none';
-                spectatorMsg.style.display = 'block';
-                $('current-action').innerText = `${striker} vs ${bowler}`;
-                $('slot-me').innerHTML = `<div style="color:#555">WATCHING</div>`;
-            } else {
-                handArea.style.display = 'flex';
-                spectatorMsg.style.display = 'none';
-                renderHand(data.players[myName].hand, amStriker ? 'BAT' : 'BOWL');
-            }
- 
-            const myCard = amStriker ? data.currentBall?.bat : data.currentBall?.bowl;
-            const oppCard = amStriker ? data.currentBall?.bowl : data.currentBall?.bat;
- 
-            if(myCard) $('slot-me').innerHTML = createCardHTML(myCard, amStriker, false);
-            else if(!amSpectator) $('slot-me').innerHTML = `<div style="color:#555">PICK CARD</div>`;
- 
-            if(oppCard) $('slot-opp').innerHTML = `<div class="card card-hidden"></div>`;
-            else $('slot-opp').innerHTML = `<div style="color:#555">WAITING</div>`;
- 
-            const ballID = data.score.balls; 
-            if(data.currentBall?.result && ballID !== lastRenderedBall) {
-                lastRenderedBall = ballID;
-                showResult(data.currentBall.result);
-                if(isHost) {
-                    setTimeout(() => nextBall(data), 3000);
-                }
-            }
-        }
- 
-        function renderHand(hand, role) {
-            const div = $('hand-area');
-            div.innerHTML = '';
-            if(!hand) return;
-            hand.forEach((c) => {
-                const el = document.createElement('div');
-                el.className = "hand-card";
-                el.innerText = c;
-                el.onclick = () => {
-                    const field = role === 'BAT' ? 'currentBall/bat' : 'currentBall/bowl';
-                    update(ref(db, `rooms/${roomCode}/${field}`), c);
-                    el.style.opacity = 0.5; 
-                    if(isHost) setTimeout(checkDuelReady, 200);
-                };
-                div.appendChild(el);
-            });
-        }
- 
-        async function checkDuelReady() {
-            const s = await get(ref(db, `rooms/${roomCode}`));
-            const d = s.val();
-            if(d.currentBall?.bat && d.currentBall?.bowl && !d.currentBall.result) {
-                resolveDuel(d, false);
-            }
-        }
- 
-        function resolveDuel(data, isTimeout) {
-            let bat = data.currentBall?.bat;
-            let bowl = data.currentBall?.bowl;
-            
-            if(!bat) bat = CARDS.BAT[Math.floor(Math.random()*CARDS.BAT.length)];
-            if(!bowl) bowl = CARDS.BOWL[Math.floor(Math.random()*CARDS.BOWL.length)];
- 
-            const outcome = OUTCOMES[bat][bowl];
-            let r = data.score.runs;
-            let w = data.score.wkts;
-            let txt = "";
- 
-            if(outcome === -1) { w++; txt = "OUT!"; }
-            else { r += outcome; txt = outcome === 0 ? "DOT BALL" : `${outcome} RUNS`; }
- 
-            update(ref(db, `rooms/${roomCode}`), {
-                'score/runs': r,
-                'score/wkts': w,
-                'currentBall/result': txt,
-                'currentBall/bat': bat, 
-                'currentBall/bowl': bowl,
-            });
-        }
- 
-        function nextBall(data) {
-            let balls = data.score.balls + 1;
-            const maxBalls = data.config.overs * 6;
-            
-            if(data.score.target && data.score.runs > data.score.target) {
-                endGame(data.battingTeam);
-                return;
-            }
-            if(data.score.wkts >= 10 || balls >= maxBalls) {
-                if(data.score.target) endGame(data.bowlingTeam);
-                else switchInnings(data, balls);
-                return;
-            }
- 
-            let updates = {
-                'currentBall': null,
-                'score/balls': balls,
-                timerEnd: Date.now() + 15000
-            };
- 
-            const isOut = data.currentBall.result === "OUT!";
-            const isOver = balls % 6 === 0;
- 
-            if(isOut) updates['match/striker'] = null;
-            if(isOver) updates['match/bowler'] = null;
- 
-            if(isOut || isOver) {
-                updates.state = 'SELECTION';
-            } else {
-                removeCardFromHand(data.match.striker, data.currentBall.bat, data.players[data.match.striker].hand);
-                removeCardFromHand(data.match.bowler, data.currentBall.bowl, data.players[data.match.bowler].hand);
-            }
- 
-            update(ref(db, `rooms/${roomCode}`), updates);
-        }
- 
-        function removeCardFromHand(pid, card, hand) {
-            if(!hand) return;
-            const idx = hand.indexOf(card);
-            if(idx > -1) {
-                const newHand = [...hand];
-                newHand.splice(idx, 1);
-                const finalHand = newHand.length ? newHand : (pid===myName?CARDS.BAT:CARDS.BOWL); 
-                update(ref(db, `rooms/${roomCode}/players/${pid}/hand`), finalHand);
-            }
-        }
- 
-        function switchInnings(data, balls) {
-            update(ref(db, `rooms/${roomCode}`), {
-                state: 'SELECTION',
-                battingTeam: data.bowlingTeam,
-                bowlingTeam: data.battingTeam,
-                'score/runs': 0,
-                'score/wkts': 0,
-                'score/balls': 0,
-                'score/target': data.score.runs,
-                'match': null,
-                timerEnd: Date.now() + 15000
-            });
-        }
- 
-        function endGame(winner) {
-            update(ref(db, `rooms/${roomCode}`), {
-                state: 'GAME_OVER',
-                winner: winner
-            });
-        }
- 
-        function handleGameOver(data) {
-            $('winner-announce').innerText = data.teams[data.winner].name + " WINS!";
-            $('mom-name').innerText = "CAPTAINS";
-            $('mom-stats').innerText = "Leadership";
-        }
- 
-        window.resetRoom = (hard) => {
-            if(!isHost) return;
-            let updates = {
-                state: 'LOBBY',
-                winner: null,
-                score: {runs:0,wkts:0,balls:0,target:null},
-                currentBall: null,
-                match: null,
-                battingTeam: null,
-                tossWinner: null
-            };
-            update(ref(db, `rooms/${roomCode}`), updates);
-        };
- 
-        // --- UTILS ---
-        function runTimer(end, elId, cb) {
-            if(timerInterval) clearInterval(timerInterval);
-            const el = $(elId);
-            timerInterval = setInterval(() => {
-                const left = Math.ceil((end - Date.now())/1000);
-                if(el) el.innerText = left > 0 ? left : 0;
-                if(left <= 0) { clearInterval(timerInterval); cb(); }
-            }, 1000);
-        }
- 
-        function showResult(txt) {
-            const el = $('result-text');
-            el.innerText = txt;
-            el.style.display = 'block';
-            el.style.color = txt==='OUT!' ? '#ff4444' : '#4caf50';
-            setTimeout(() => { el.style.display='none'; }, 2500);
-        }
- 
-        function createCardHTML(val, isBat, hidden) {
-            if(hidden) return `<div class="card card-hidden"></div>`;
-            return `
-                <div class="card ${isBat?'card-bat':'card-bowl'}">
-                    <div class="card-val">${val.charAt(0)}</div>
-                    <div class="card-label">${val}</div>
-                </div>
-            `;
-        }
- 
-        window.showRules = () => $('rules-overlay').style.display='flex';
-        window.exitGame = async () => {
-            if(confirm("Exit?")) {
-                if(roomCode && myName) await remove(ref(db, `rooms/${roomCode}/players/${myName}`));
-                sessionStorage.clear();
-                location.reload();
-            }
-        };
- 
+
     </script>
 </body>
 </html>
