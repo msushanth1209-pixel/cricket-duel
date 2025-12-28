@@ -26,10 +26,10 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            user-select: none; /* Prevents text selection on taps */
+            user-select: none;
         }
 
-        /* --- 2. HEADER (Fixed) --- */
+        /* --- 2. HEADER --- */
         header {
             height: 60px;
             background: rgba(0,0,0,0.4);
@@ -56,7 +56,7 @@
             z-index: 1;
         }
 
-        /* --- 4. FOOTER (Fixed) --- */
+        /* --- 4. FOOTER --- */
         footer {
             height: 100px;
             background: rgba(0,0,0,0.8);
@@ -92,13 +92,13 @@
         .btn-blue { background: linear-gradient(135deg, var(--mi-blue), #2980b9); box-shadow: none; }
         .btn-icon { padding: 8px 12px; font-size: 1.2rem; background: rgba(255,255,255,0.1); margin-left: 5px; }
 
-        /* Small Buttons for Host Actions */
         .btn-mini { 
-            padding: 4px 8px; 
-            font-size: 0.7rem; 
+            padding: 6px 10px; 
+            font-size: 0.8rem; 
             margin-left: 6px; 
             border-radius: 6px;
             box-shadow: none;
+            cursor: pointer;
         }
 
         .card-btn {
@@ -301,7 +301,6 @@
 
     <div id="rules-overlay" class="overlay-modal" style="display:none; justify-content:flex-start; padding-top:60px;">
         <h2 style="color:var(--csk-yellow);">GAME RULES</h2>
-        <p style="text-align:center; color:#ccc; font-size:0.9rem;">Predict your opponent's move to score or take wickets.</p>
         <table class="rules-table">
             <thead><tr><th>BAT CARD</th><th>VS BOWLER CARD</th><th>RESULT</th></tr></thead>
             <tbody>
@@ -336,7 +335,7 @@
         const fApp = initializeApp(firebaseConfig);
         const db = getDatabase(fApp);
 
-        // --- MATRIX & CONSTANTS ---
+        // --- GAME CONSTANTS ---
         const MATRIX = {
             "6 RUNS": { "SPIN": {v:6, t:"Smashed!"}, "FULL TOSS": {v:6, t:"Punished!"}, "FAST": {v:"OUT", t:"Pace!"}, "YORKER": {v:"OUT", t:"Bowled!"}, "BOUNCER": {v:0, t:"Missed"} },
             "4 RUNS": { "BOUNCER": {v:4, t:"Pulled!"}, "FULL TOSS": {v:4, t:"Driven!"}, "FAST": {v:"OUT", t:"Edged!"}, "YORKER": {v:"OUT", t:"LBW!"}, "SPIN": {v:0, t:"Dot Ball"} },
@@ -358,13 +357,12 @@
             join: () => {
                 const c = document.getElementById('inp-room').value.toUpperCase().trim();
                 const n = document.getElementById('inp-name').value.trim();
-                if(!c || !n) return alert("Please enter Room Code & Name");
+                if(!c || !n) return alert("Please enter Code & Name");
                 room = c; me = n;
 
                 const rRef = ref(db, `rooms/${room}`);
                 get(rRef).then(snap => {
                     if(!snap.exists()) {
-                        // NEW ROOM -> I AM HOST
                         isHost = true;
                         document.getElementById('force-btn').style.display = "block";
                         set(rRef, {
@@ -376,10 +374,9 @@
                             turn: { striker: "", bowler: "", cBat: "", cBowl: "", result: "" }
                         });
                     } else {
-                        // EXISTING ROOM
                         const val = snap.val();
                         if (val.host === me) {
-                            isHost = true; // RECLAIM HOST
+                            isHost = true;
                             document.getElementById('force-btn').style.display = "block";
                         }
                         const p = val.players || {};
@@ -387,17 +384,14 @@
                         const existingTeam = p[me] ? p[me].team : t;
                         update(ref(db, `rooms/${room}/players/${me}`), { team: existingTeam, status:"ON" });
                     }
-                    // Start Listener
                     onValue(rRef, s => { localData = s.val(); app.render(localData); if(isHost) app.hostLoop(localData); });
                 });
             },
 
             render: (d) => {
                 if(!d) return;
-                
-                // DETERMINE MY TEAM (Robust check)
                 if(d.players && d.players[me]) myTeam = d.players[me].team;
-
+                
                 document.querySelectorAll('.screen').forEach(e => e.classList.remove('active'));
                 document.getElementById(`screen-${d.state.toLowerCase()}`).classList.add('active');
 
@@ -446,7 +440,6 @@
                     const coin = document.getElementById('coin');
                     const ui = document.getElementById('toss-ui');
                     const msg = document.getElementById('toss-msg');
-                    
                     coin.className = t.step==="SPIN" ? "spinning" : "";
                     coin.innerText = t.step==="DECIDE" ? (t.call==="HEADS"?"H":"T") : "?";
                     ui.innerHTML = "";
@@ -458,7 +451,7 @@
                         msg.innerText = "YOU WON! Choose:";
                         ui.innerHTML = `<button class="btn" onclick="app.tossDecide('BAT')">BAT</button> <button class="btn" onclick="app.tossDecide('BOWL')">BOWL</button>`;
                     } else {
-                        msg.innerText = t.step==="SPIN"?"Coin Spinning...":"Waiting for Toss...";
+                        msg.innerText = t.step==="SPIN"?"Coin Spinning...":"Waiting...";
                     }
                 }
 
@@ -471,19 +464,14 @@
                     document.getElementById('sel-title').innerText = `Pick a ${role}`;
                     const list = document.getElementById('sel-list');
                     list.innerHTML = "";
-
                     const picked = isBat ? d.turn?.striker : d.turn?.bowler;
 
                     if(picked) {
-                        document.getElementById('sel-msg').innerText = `${role} Selected: ${picked}`;
-                        // If I am just a player (not cap) I wait
-                        if(!isCap) document.getElementById('sel-msg').innerText += " (Waiting for opponent)";
+                        document.getElementById('sel-msg').innerText = `${role}: ${picked} (Waiting...)`;
                     } else if(isCap) {
-                        document.getElementById('sel-msg').innerText = "Tap a player to send to pitch:";
+                        document.getElementById('sel-msg').innerText = "Tap a player:";
                         Object.entries(d.players).forEach(([k,v]) => {
-                            if(v.team === myTeam) {
-                                list.innerHTML += `<button class="btn" style="width:100%; margin-bottom:5px;" onclick="app.selectPlayer('${k}')">${k}</button>`;
-                            }
+                            if(v.team === myTeam) list.innerHTML += `<button class="btn" style="width:100%; margin-bottom:5px;" onclick="app.selectPlayer('${k}')">${k}</button>`;
                         });
                     } else {
                         document.getElementById('sel-msg').innerText = "Captain is selecting...";
@@ -505,7 +493,6 @@
                     const foot = document.getElementById('foot-hand');
                     foot.innerHTML = "";
                     
-                    // CARD GENERATION LOGIC
                     if(role === "bat") BAT_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
                     else if(role === "bowl") BOWL_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
                     else foot.innerHTML = "<p style='width:100%; text-align:center; color:#ccc'>Spectating...</p>";
@@ -528,15 +515,12 @@
                     }
 
                     if(turn.result) {
-                        const res = document.getElementById('result-overlay');
-                        res.style.display = "flex";
+                        document.getElementById('result-overlay').style.display = "flex";
                         document.getElementById('res-text').innerText = turn.result;
                         document.getElementById('res-desc').innerText = turn.desc;
-                        
                         if(role !== "spec") {
-                            const opC = role==="bat" ? turn.cBowl : turn.cBat;
                             sOpp.classList.add('revealed');
-                            sOpp.innerText = opC;
+                            sOpp.innerText = role==="bat" ? turn.cBowl : turn.cBat;
                         }
                     } else {
                         document.getElementById('result-overlay').style.display = "none";
@@ -544,14 +528,16 @@
                 }
             },
 
-            // --- HOST ONLY ACTIONS ---
+            // --- HOST ACTIONS ---
+            // FIXED: Using set() instead of update() for primitive values
+            hostSetCap: (pName, t) => {
+                set(ref(db, `rooms/${room}/teams/${t}/captain`), pName);
+            },
             hostSwap: (pName, newTeam) => {
                 update(ref(db, `rooms/${room}/players/${pName}`), { team: newTeam });
-                if(localData.teams.A.captain === pName) update(ref(db, `rooms/${room}/teams/A/captain`), null);
-                if(localData.teams.B.captain === pName) update(ref(db, `rooms/${room}/teams/B/captain`), null);
-            },
-            hostSetCap: (pName, t) => {
-                update(ref(db, `rooms/${room}/teams/${t}/captain`), pName);
+                // Clean up if they were captain
+                if(localData.teams.A.captain === pName) set(ref(db, `rooms/${room}/teams/A/captain`), null);
+                if(localData.teams.B.captain === pName) set(ref(db, `rooms/${room}/teams/B/captain`), null);
             },
             hostShuffle: () => {
                 const players = Object.keys(localData.players);
@@ -571,89 +557,54 @@
             },
 
             // --- PLAYER ACTIONS ---
-            submitName: () => {
-                const n = document.getElementById('inp-teamname').value;
-                update(ref(db, `rooms/${room}/teams/${myTeam}`), {name:n, isNamed:true});
-            },
+            submitName: () => update(ref(db, `rooms/${room}/teams/${myTeam}`), {name: document.getElementById('inp-teamname').value, isNamed:true}),
             tossCall: (c) => update(ref(db, `rooms/${room}/toss`), {call:c, step:"SPIN"}),
             tossDecide: (c) => {
-                const l = myTeam==="A"?"B":"A";
-                update(ref(db, `rooms/${room}`), {batTeam:myTeam, bowlTeam:l, state:"SELECTION"});
+                update(ref(db, `rooms/${room}`), {batTeam:myTeam, bowlTeam:(myTeam==="A"?"B":"A"), state:"SELECTION"});
                 update(ref(db, `rooms/${room}/turn`), {striker:"", bowler:"", cBat:"", cBowl:"", result:""});
             },
-            
             selectPlayer: (p) => {
-                // Determine which field I am filling based on MY TEAM, not Host data
                 const isBat = localData.batTeam === myTeam;
-                const field = isBat ? "striker" : "bowler";
-                update(ref(db, `rooms/${room}/turn`), { [field]: p });
+                update(ref(db, `rooms/${room}/turn`), { [isBat?"striker":"bowler"]: p });
             },
-
             play: (c) => {
-                // Determine if I am batting or bowling
                 const isBat = localData.batTeam === myTeam;
-                const field = isBat ? "cBat" : "cBowl";
-                update(ref(db, `rooms/${room}/turn`), { [field]: c });
+                update(ref(db, `rooms/${room}/turn`), { [isBat?"cBat":"cBowl"]: c });
             },
-            
             closeOverlay: () => {
-                // If I am Host, I trigger the reset for everyone
                 if(isHost) {
                      update(ref(db, `rooms/${room}`), { state:"SELECTION" });
                      update(ref(db, `rooms/${room}/turn`), { cBat:"", cBowl:"", result:"", desc:"", striker:null, bowler:null }); 
                 }
             },
 
-            // --- HOST SERVER LOOP (Background Logic) ---
+            // --- SERVER LOOP ---
             hostLoop: (d) => {
                 if(!d) return;
-
-                // Naming -> Toss
-                if(d.state==="NAMING" && d.teams.A.isNamed && d.teams.B.isNamed) {
-                    update(ref(db, `rooms/${room}`), {state:"TOSS", toss:{step:"CALL"}});
-                }
-                // Toss Spin
+                if(d.state==="NAMING" && d.teams.A.isNamed && d.teams.B.isNamed) update(ref(db, `rooms/${room}`), {state:"TOSS", toss:{step:"CALL"}});
                 if(d.state==="TOSS" && d.toss.step==="SPIN" && !d.toss.winner) {
                     setTimeout(() => {
                         const res = Math.random()>0.5?"HEADS":"TAILS";
-                        const w = res===d.toss.call ? "A" : "B";
-                        update(ref(db, `rooms/${room}/toss`), {winner:w, step:"DECIDE", call:res});
+                        update(ref(db, `rooms/${room}/toss`), {winner:(res===d.toss.call?"A":"B"), step:"DECIDE", call:res});
                     }, 2000);
                 }
-                
-                // Selection -> Game (Wait for both)
-                if(d.state==="SELECTION" && d.turn && d.turn.striker && d.turn.bowler) {
-                    update(ref(db, `rooms/${room}`), {state:"GAME"});
+                if(d.state==="SELECTION" && d.turn?.striker && d.turn?.bowler) update(ref(db, `rooms/${room}`), {state:"GAME"});
+                if(d.state==="GAME" && d.turn?.cBat && d.turn?.cBowl && !d.turn.result) {
+                    const r = MATRIX[d.turn.cBat][d.turn.cBowl];
+                    const s = {...d.score}; s.b++;
+                    if(r.v==="OUT") s.w++; else s.r+=r.v;
+                    update(ref(db, `rooms/${room}/turn`), {result:(r.v==="OUT"?"OUT!":r.v+" RUNS"), desc:r.t});
+                    update(ref(db, `rooms/${room}/score`), s);
                 }
-
-                // Game Logic
-                if(d.state==="GAME" && d.turn && d.turn.cBat && d.turn.cBowl && !d.turn.result) {
-                    const resObj = MATRIX[d.turn.cBat][d.turn.cBowl];
-                    const sc = {...d.score};
-                    sc.b++;
-                    if(resObj.v === "OUT") sc.w++; else sc.r += resObj.v;
-                    
-                    update(ref(db, `rooms/${room}/turn`), {
-                        result: (resObj.v==="OUT"?"OUT!":resObj.v+" RUNS"), 
-                        desc: resObj.t
-                    });
-                    update(ref(db, `rooms/${room}/score`), sc);
-                }
-
-                // Force Button
                 document.getElementById('force-btn').onclick = () => {
-                    if(d.state === "NAMING") update(ref(db, `rooms/${room}`), { state: "TOSS", toss:{step:"CALL"}, teams:{A:{isNamed:true, name:"Red"}, B:{isNamed:true, name:"Blue"}} });
-                    if(d.state === "TOSS") update(ref(db, `rooms/${room}`), { state: "SELECTION", batTeam:"A", bowlTeam:"B" });
-                    if(d.state === "SELECTION") {
-                        const p = Object.keys(d.players);
-                        update(ref(db, `rooms/${room}/turn`), { striker:p[0], bowler:p[1] });
-                    } 
-                    if(d.state === "GAME") app.closeOverlay();
+                    if(d.state==="NAMING") update(ref(db, `rooms/${room}`), {state:"TOSS", toss:{step:"CALL"}, teams:{A:{isNamed:true,name:"Red"},B:{isNamed:true,name:"Blue"}}});
+                    if(d.state==="TOSS") update(ref(db, `rooms/${room}`), {state:"SELECTION", batTeam:"A", bowlTeam:"B"});
+                    if(d.state==="SELECTION") update(ref(db, `rooms/${room}/turn`), {striker:Object.keys(d.players)[0], bowler:Object.keys(d.players)[1]});
+                    if(d.state==="GAME") app.closeOverlay();
                 }
             }
         };
 
-        // Expose
         window.app = app;
     </script>
 </body>
