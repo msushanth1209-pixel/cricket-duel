@@ -8,9 +8,9 @@
         /* --- THEME --- */
         :root {
             --pitch-green: #27ae60;
-            --pitch-dark: #219150;
+            --pitch-light: #2ecc71;
             --night-sky: #1e272e;
-            --card-white: #ecf0f1;
+            --card-white: #f5f6fa;
             --csk-yellow: #f1c40f;
             --mi-blue: #3498db;
             --danger-red: #e74c3c;
@@ -29,7 +29,7 @@
             user-select: none;
         }
 
-        /* --- LAYOUT --- */
+        /* --- HEADER --- */
         header {
             height: 60px;
             background: rgba(0,0,0,0.6);
@@ -43,6 +43,7 @@
             z-index: 20;
         }
 
+        /* --- MAIN --- */
         main {
             flex: 1;
             overflow-y: auto;
@@ -55,6 +56,7 @@
             z-index: 1;
         }
 
+        /* --- FOOTER --- */
         footer {
             height: 110px;
             background: rgba(0,0,0,0.9);
@@ -69,11 +71,11 @@
             z-index: 20;
         }
 
-        /* --- COMPONENTS --- */
+        /* --- UI COMPONENTS --- */
         h1, h2, h3 { margin: 0 0 10px 0; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
 
         .btn {
-            background: linear-gradient(135deg, var(--pitch-light, #2ecc71), var(--pitch-green));
+            background: linear-gradient(135deg, var(--pitch-light), var(--pitch-green));
             border: none;
             color: white;
             padding: 10px 20px;
@@ -87,6 +89,7 @@
         }
         .btn:active { transform: scale(0.95); }
         .btn-danger { background: linear-gradient(135deg, var(--danger-red), #c0392b); box-shadow: none; }
+        .btn-blue { background: linear-gradient(135deg, var(--mi-blue), #2980b9); box-shadow: none; }
         .btn-icon { padding: 8px 12px; font-size: 1.2rem; background: rgba(255,255,255,0.1); margin-left: 5px; }
         .btn-mini { padding: 6px 10px; font-size: 0.8rem; margin-left: 6px; border-radius: 6px; box-shadow: none; cursor: pointer; }
 
@@ -99,11 +102,11 @@
             height: 75px;
             margin-right: 8px;
             background: var(--card-white);
-            color: #2c3e50;
+            color: var(--night-sky);
             border-radius: 8px;
             border: none;
             font-weight: 900;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             white-space: normal;
             text-align: center;
@@ -112,6 +115,7 @@
             position: relative;
         }
         .card-btn:active { transform: scale(0.9); background: #dfe4ea; }
+        
         .card-count {
             position: absolute; top: -5px; right: -5px;
             background: var(--danger-red); color: white;
@@ -152,7 +156,7 @@
         }
         .slot.ready { border-color: var(--csk-yellow); background: rgba(241, 196, 15, 0.1); color: var(--csk-yellow); }
         .slot.revealed { 
-            background: var(--card-white); color: #2c3e50;
+            background: var(--card-white); color: var(--night-sky); 
             border: 4px solid var(--pitch-light); transform: rotateY(0deg); 
             font-weight: 900; font-size: 1.2rem;
         }
@@ -179,7 +183,7 @@
 <body>
 
     <header>
-        <div style="font-weight:900; font-size:1.1rem; color:var(--pitch-light, #2ecc71);">CRICKET DUEL</div>
+        <div style="font-weight:900; font-size:1.1rem; color:var(--pitch-light);">CRICKET DUEL</div>
         <div style="display:flex; align-items:center;">
             <button class="btn btn-icon" onclick="document.getElementById('rules-overlay').style.display='flex'">?</button>
             <button class="btn btn-icon btn-danger" onclick="window.location.reload()" style="font-size:0.8rem; font-weight:bold;">EXIT</button>
@@ -196,7 +200,7 @@
         </div>
 
         <div id="screen-lobby" class="screen">
-            <h2>Room: <span id="lobby-code" style="color:#2ecc71"></span></h2>
+            <h2>Room: <span id="lobby-code" style="color:var(--pitch-light)"></span></h2>
             <div id="host-badge" style="display:none; text-align:center; color:gold; margin-bottom:10px;">⭐ YOU ARE THE HOST ⭐</div>
             
             <div class="team-box" style="border-left: 5px solid var(--danger-red);">
@@ -240,7 +244,7 @@
 
         <div id="screen-selection" class="screen">
             <h2>Strategy</h2>
-            <h3 id="sel-title" style="color:#2ecc71; font-size:0.9rem; margin-bottom:15px;"></h3>
+            <h3 id="sel-title" style="color:var(--pitch-light); font-size:0.9rem; margin-bottom:15px;"></h3>
             <div id="sel-list" class="team-box"></div>
             <p id="sel-msg" style="text-align:center; color:#95a5a6;"></p>
         </div>
@@ -565,7 +569,7 @@
                 const isInningsEnd = (balls >= (MAX_OVERS * 6));
                 
                 // --- INNINGS CHANGE LOGIC ---
-                if (isInningsEnd || (curInn === 2 && score.r >= score.target) || (curInn===2 && isWicket && score.w >= 10)) { // Simple all out check
+                if (isInningsEnd || (curInn === 2 && score.r >= score.target) || (curInn===2 && isWicket && score.w >= 10)) { 
                     
                     if (curInn === 1) {
                         // Switch to Innings 2
@@ -586,18 +590,26 @@
                          updates[`rooms/${room}/state`] = "OVER";
                     }
 
-                } else if (isWicket || isOverUp) {
-                    // Normal Wicket or Over End -> Re-select players
-                    updates[`rooms/${room}/state`] = "SELECTION";
-                    updates[`rooms/${room}/turn/striker`] = null;
-                    updates[`rooms/${room}/turn/bowler`] = null;
+                } else {
+                    // Always clear turn result data
+                    updates[`rooms/${room}/turn/cBat`] = null;
+                    updates[`rooms/${room}/turn/cBowl`] = null;
+                    updates[`rooms/${room}/turn/result`] = null;
+                    updates[`rooms/${room}/turn/desc`] = null;
+
+                    if (isWicket || isOverUp) {
+                        updates[`rooms/${room}/state`] = "SELECTION";
+                        
+                        // Wicket? Batsman goes.
+                        if (isWicket) updates[`rooms/${room}/turn/striker`] = null;
+                        
+                        // Over Up? Only Bowler goes.
+                        if (isOverUp) {
+                            updates[`rooms/${room}/turn/bowler`] = null;
+                            // NOTE: Striker remains to allow smoother flow (unless Wicket fell on last ball)
+                        }
+                    }
                 }
-                
-                // Clean current turn data (Always)
-                updates[`rooms/${room}/turn/cBat`] = null;
-                updates[`rooms/${room}/turn/cBowl`] = null;
-                updates[`rooms/${room}/turn/result`] = null;
-                updates[`rooms/${room}/turn/desc`] = null;
 
                 // Execute Atomic Update
                 update(ref(db), updates);
@@ -624,7 +636,7 @@
                     const cardIdx = currentHand.indexOf(d.turn.cBat);
                     if(cardIdx > -1) {
                         currentHand.splice(cardIdx, 1);
-                        if(currentHand.length===0) currentHand.push(...START_DECK); // Refill logic
+                        if(currentHand.length===0) currentHand.push(...START_DECK); 
                         set(ref(db, `rooms/${room}/players/${striker}/hand`), currentHand);
                     }
                     
