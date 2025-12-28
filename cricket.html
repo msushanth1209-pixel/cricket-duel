@@ -3,73 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cricket Duel: Pro</title>
+    <title>Cricket Duel: Mobile Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg:#0f0f0f; --text:#fff; --gold:#ffcc00; --red:#e74c3c; --blue:#3498db; --green:#27ae60; --dark:#1a1a1a; }
+        :root { --bg:#121212; --text:#fff; --gold:#ffcc00; --red:#e74c3c; --blue:#3498db; --green:#27ae60; --dark:#1a1a1a; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* --- HEADER BAR --- */
+        /* --- HEADER --- */
         .top-bar { 
-            width: 100%; height: 60px; background: #111; border-bottom: 2px solid var(--gold);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 100;
+            height: 50px; background: #111; border-bottom: 2px solid var(--gold); display: flex; 
+            justify-content: space-between; align-items: center; padding: 0 10px; flex-shrink: 0; z-index: 100;
         }
-        .bar-btn {
-            background: transparent; border: 1px solid #555; color: #aaa;
-            padding: 5px 15px; font-family: 'Teko'; font-size: 1.2rem; cursor: pointer;
-            border-radius: 4px; transition: 0.2s;
-        }
-        .bar-btn:active { background: var(--gold); color: black; border-color: var(--gold); }
-        .status-text { font-family: 'Teko'; font-size: 1.5rem; color: var(--gold); letter-spacing: 1px; }
+        .bar-btn { background: #333; border: 1px solid #555; color: #ccc; padding: 4px 12px; font-family: 'Teko'; font-size: 1.1rem; border-radius: 4px; cursor: pointer; }
+        .status-txt { color: var(--gold); font-family: 'Teko'; font-size: 1.4rem; letter-spacing: 1px; }
 
         /* --- SCREENS --- */
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; position: relative; z-index: 10; overflow-y: auto; padding-bottom: 20px; }
+        .screen { display: none; flex: 1; flex-direction: column; position: relative; overflow: hidden; width: 100%; }
         .screen.active { display: flex; }
         .hidden { display: none !important; }
 
-        /* --- UI COMPONENTS --- */
-        .container { width: 90%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        
-        .btn { 
-            border: none; padding: 12px; font-family: 'Teko'; font-size: 1.5rem; 
-            cursor: pointer; text-transform: uppercase; width: 100%; border-radius: 6px;
-            transition: transform 0.1s; display: block;
+        /* --- LOBBY --- */
+        .lobby-container { display: flex; flex: 1; overflow: hidden; padding: 5px; gap: 5px; }
+        .team-box { 
+            flex: 1; border: 1px solid #333; background: rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; border-radius: 5px; overflow: hidden; 
         }
-        .btn:active { transform: scale(0.96); }
-        .btn-gold { background: var(--gold); color: black; font-weight: bold; box-shadow: 0 4px 0 #b38f00; }
-        .btn-blue { background: var(--blue); color: white; box-shadow: 0 4px 0 #217dbb; }
-        .btn-red { background: var(--red); color: white; box-shadow: 0 4px 0 #c0392b; }
+        .team-head { text-align: center; padding: 5px; font-family: 'Teko'; font-size: 1.3rem; background: rgba(0,0,0,0.5); }
+        .head-red { color: var(--red); border-bottom: 2px solid var(--red); }
+        .head-blue { color: var(--blue); border-bottom: 2px solid var(--blue); }
+        .player-list { flex: 1; overflow-y: auto; padding: 5px; }
         
-        .input-box { 
-            background: #222; border: 2px solid #444; color: white; padding: 15px; 
-            width: 100%; text-align: center; font-size: 1.3rem; border-radius: 8px; outline: none; 
-            font-family: 'Rajdhani', sans-serif;
+        .p-row { 
+            background: #222; padding: 8px 5px; margin-bottom: 4px; border-radius: 4px; 
+            font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
+            border-left: 3px solid #555;
         }
-        .input-box:focus { border-color: var(--gold); }
+        .p-row.red { border-color: var(--red); }
+        .p-row.blue { border-color: var(--blue); }
+        
+        .c-badge { background: var(--gold); color: black; font-weight: bold; padding: 1px 5px; border-radius: 3px; font-size: 0.75rem; margin-left: 5px; }
+        .swap-icon { font-size: 1.2rem; cursor: pointer; padding: 0 5px; color: #777; }
 
-        /* --- LOBBY LISTS --- */
-        .lobby-grid { display: flex; width: 100%; height: 100%; }
-        .team-col { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .p-card { 
-            background: #222; padding: 10px; border-radius: 4px; border-left: 5px solid #555;
-            display: flex; justify-content: space-between; align-items: center; font-weight: bold;
-        }
-        .p-card.red { border-color: var(--red); }
-        .p-card.blue { border-color: var(--blue); }
-        .action-icon { font-size: 1.2rem; padding: 0 8px; cursor: pointer; opacity: 0.6; }
-        .action-icon:hover { opacity: 1; transform: scale(1.2); }
+        /* --- COMPONENTS --- */
+        .btn { border: none; padding: 10px; font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; text-transform: uppercase; width: 90%; border-radius: 5px; margin: 5px auto; display: block; }
+        .btn-gold { background: var(--gold); color: black; font-weight: bold; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-sm { width: 48%; margin: 0; font-size: 1.1rem; padding: 8px; }
+        .input-box { background: #222; border: 1px solid #555; color: white; padding: 10px; width: 90%; text-align: center; font-size: 1.1rem; border-radius: 5px; margin: 10px auto; display: block; outline: none; }
 
         /* --- GAMEPLAY --- */
-        .scoreboard {
-            width: 100%; background: #151515; padding: 10px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #333; flex-shrink: 0;
-        }
-        .score-box { text-align: center; }
-        .big-digit { font-family: 'Teko'; font-size: 2.2rem; line-height: 0.9; color: white; }
-        .small-lbl { font-size: 0.8rem; color: #777; }
+        .scoreboard { background: #151515; padding: 5px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; flex-shrink: 0; }
+        .sc-val { font-family: 'Teko'; font-size: 2rem; line-height: 0.9; }
+        .sc-lbl { font-size: 0.75rem; color: #888; }
 
         .pitch { 
             flex: 1; width: 100%; background: var(--green); position: relative;
@@ -77,172 +64,146 @@
             background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.1) 20px);
         }
         
-        .card-slot { 
-            width: 100px; height: 140px; border: 3px dashed rgba(255,255,255,0.3); 
-            border-radius: 10px; display: flex; align-items: center; justify-content: center; 
-            margin: 15px; background: rgba(0,0,0,0.1); 
-        }
-        .card { 
-            width: 100px; height: 140px; background: white; color: black; border-radius: 10px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            font-family: 'Teko'; font-size: 1.8rem; border: 4px solid #333; 
-            animation: popIn 0.3s; box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
-        }
+        .card-slot { width: 90px; height: 130px; border: 2px dashed rgba(255,255,255,0.4); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 10px; background: rgba(0,0,0,0.1); }
+        .card { width: 90px; height: 130px; background: white; color: black; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 1.6rem; border: 3px solid #333; animation: pop 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .card-bat { border-color: var(--blue); background: linear-gradient(135deg, #fff, #e3f2fd); }
         .card-bowl { border-color: var(--red); background: linear-gradient(135deg, #fff, #ffebee); }
 
-        .hand-scroll {
-            width: 100%; height: 160px; background: #1a1a1a; border-top: 2px solid var(--gold);
-            display: flex; align-items: center; gap: 10px; padding: 0 15px; overflow-x: auto; flex-shrink: 0;
-        }
+        .hand-area { height: 140px; background: #1a1a1a; display: flex; align-items: center; gap: 8px; padding: 0 10px; overflow-x: auto; flex-shrink: 0; border-top: 1px solid #444; }
+        
+        /* --- MODAL --- */
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index: 2000; display:flex; align-items:center; justify-content:center; }
+        .modal-content { background: #222; padding: 15px; border: 1px solid var(--gold); width: 90%; max-width: 350px; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
+        .rule { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 8px 0; font-size: 0.85rem; }
 
-        /* --- RULES MODAL --- */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index: 2000; display:none; align-items:center; justify-content:center; }
-        .modal-box { background: #222; padding: 20px; border: 2px solid var(--gold); width: 90%; max-width: 400px; border-radius: 10px; max-height: 85vh; overflow-y: auto; }
-        .rule-row { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 10px 0; font-size: 0.95rem; }
-
-        @keyframes popIn { from{transform:scale(0);} to{transform:scale(1);} }
+        @keyframes pop { from{transform:scale(0);} to{transform:scale(1);} }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <button class="bar-btn" onclick="toggleRules()">RULES</button>
-        <div id="status-display" class="status-text">LOBBY</div>
+        <button class="bar-btn" onclick="$('rules-modal').classList.remove('hidden')">RULES</button>
+        <div id="status-txt" class="status-txt">LOBBY</div>
         <button class="bar-btn" onclick="exitGame()">EXIT</button>
     </div>
 
-    <div id="rules-modal" class="modal-overlay" onclick="toggleRules()">
-        <div class="modal-box">
-            <h2 style="color:var(--gold); text-align:center; margin-bottom:15px;">GAME RULES</h2>
-            <div class="rule-row"><b style="color:var(--blue)">6 RUNS</b> <span>beats Spin, FullToss</span></div>
-            <div class="rule-row"><b style="color:var(--blue)">4 RUNS</b> <span>beats Bouncer, FullToss</span></div>
-            <div class="rule-row"><b style="color:var(--blue)">2 RUNS</b> <span>beats Spin, Fast</span></div>
-            <div class="rule-row"><b style="color:var(--blue)">1 RUN</b> <span>beats Yorker, Fast</span></div>
-            <div class="rule-row"><b style="color:var(--blue)">DEFENSE</b> <span>Safe vs Pace/Yorker</span></div>
-            <div class="rule-row"><b style="color:var(--red)">YORKER</b> <span>OUT vs 6, 4, 2</span></div>
-            <p style="text-align:center; margin-top:20px; color:#666;">(Tap anywhere to close)</p>
+    <div id="rules-modal" class="overlay hidden" onclick="this.classList.add('hidden')">
+        <div class="modal-content">
+            <h3 style="color:var(--gold); text-align:center; margin-bottom:10px;">RULES</h3>
+            <div class="rule"><b style="color:var(--blue)">6 RUNS</b> <span>vs Spin/FullToss</span></div>
+            <div class="rule"><b style="color:var(--blue)">4 RUNS</b> <span>vs Bouncer/FullToss</span></div>
+            <div class="rule"><b style="color:var(--blue)">2 RUNS</b> <span>vs Spin/Fast</span></div>
+            <div class="rule"><b style="color:var(--blue)">1 RUN</b> <span>vs Yorker/Fast</span></div>
+            <div class="rule"><b style="color:var(--blue)">DEFENSE</b> <span>Safe vs Pace</span></div>
+            <div class="rule"><b style="color:var(--red)">YORKER</b> <span>Outs Big Shots</span></div>
+            <p style="text-align:center; margin-top:10px; color:#666; font-size:0.8rem;">Tap to Close</p>
         </div>
     </div>
 
     <div id="s-home" class="screen active" style="justify-content:center;">
-        <div class="container" style="text-align:center;">
-            <h1 style="font-size:5rem; color:var(--gold); font-family:'Teko'; line-height:0.8;">CRICKET<br>DUEL</h1>
-            <p style="color:#777; letter-spacing:3px;">CHAMPIONSHIP</p>
-            <br>
-            <input type="text" id="my-name" class="input-box" placeholder="YOUR NAME" maxlength="10">
-            <button class="btn btn-gold" onclick="createRoom()">HOST GAME</button>
-            <div style="display:flex; width:100%; gap:10px;">
-                <input type="text" id="join-code" class="input-box" placeholder="CODE" style="margin:0;">
-                <button class="btn btn-outline" style="border:2px solid #555; background:none; color:#ccc;" onclick="joinRoom()">JOIN</button>
-            </div>
+        <h1 style="font-size:4rem; color:var(--gold); text-align:center; font-family:'Teko'; line-height:0.8;">CRICKET<br>DUEL</h1>
+        <p style="text-align:center; color:#666; letter-spacing:2px; margin-bottom:20px;">CHAMPIONSHIP</p>
+        <input type="text" id="my-name" class="input-box" placeholder="YOUR NAME" maxlength="10">
+        <button class="btn btn-gold" onclick="createRoom()">HOST</button>
+        <div style="display:flex; width:90%; margin:0 auto; gap:5px;">
+            <input type="text" id="join-code" class="input-box" placeholder="CODE" style="margin:0;">
+            <button class="btn btn-gold" style="margin:0; background:transparent; border:1px solid #555; color:#ccc;" onclick="joinRoom()">JOIN</button>
         </div>
     </div>
 
     <div id="s-lobby" class="screen">
-        <div style="text-align:center; padding:10px; background:#1a1a1a;">
-            <span style="color:#555;">ROOM:</span> 
-            <span id="disp-code" style="color:var(--gold); font-size:1.5rem; font-family:'Teko'; font-weight:bold;">...</span>
-        </div>
+        <div style="text-align:center; padding:5px; background:#181818; font-size:0.9rem;">ROOM: <span id="disp-code" style="color:var(--gold); font-size:1.2rem; font-weight:bold;">...</span></div>
         
-        <div class="lobby-grid">
-            <div class="team-col" style="border-right:1px solid #333;">
-                <div style="text-align:center; color:var(--red); font-family:'Teko'; font-size:1.3rem;">RED TEAM</div>
-                <div id="list-red"></div>
+        <div class="lobby-container">
+            <div class="team-box">
+                <div class="team-head head-red">RED TEAM</div>
+                <div id="list-red" class="player-list"></div>
             </div>
-            <div class="team-col">
-                <div style="text-align:center; color:var(--blue); font-family:'Teko'; font-size:1.3rem;">BLUE TEAM</div>
-                <div id="list-blue"></div>
+            <div class="team-box">
+                <div class="team-head head-blue">BLUE TEAM</div>
+                <div id="list-blue" class="player-list"></div>
             </div>
         </div>
 
-        <div id="host-controls" class="hidden" style="background:#1a1a1a; padding:15px; border-top:2px solid var(--gold);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <button class="bar-btn" onclick="randomizeTeams()">SHUFFLE</button>
-                <button class="bar-btn" onclick="randomizeCaptains()">AUTO CAP</button>
+        <div id="host-panel" class="hidden" style="padding:10px; background:#181818; border-top:1px solid var(--gold);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <button class="bar-btn btn-sm" onclick="shuffleTeams()">SHUFFLE</button>
+                <button class="bar-btn btn-sm" onclick="autoCaptains()">AUTO CAP</button>
             </div>
-            <div style="display:flex; gap:10px;">
-                <select id="overs-select" class="input-box" style="margin:0; padding:10px; width:40%;">
-                    <option value="1">1 OVR</option>
-                    <option value="2">2 OVR</option>
-                    <option value="5">5 OVR</option>
+            <div style="display:flex; gap:5px;">
+                <select id="overs-sel" class="input-box" style="margin:0; width:40%; padding:5px; font-size:1rem;">
+                    <option value="1">1 OVR</option><option value="2">2 OVR</option><option value="5">5 OVR</option>
                 </select>
-                <button class="btn btn-gold" style="margin:0; width:60%;" onclick="startGame()">START</button>
+                <button class="btn btn-gold" style="margin:0; width:60%; font-size:1.2rem;" onclick="startGame()">START</button>
             </div>
         </div>
         <div id="wait-msg" style="text-align:center; padding:20px; color:#555;">Waiting for Host...</div>
     </div>
 
-    <div id="s-naming" class="screen" style="justify-content:center;">
-        <div class="container" style="text-align:center;">
-            <h2 id="name-timer" style="color:var(--gold); font-size:3rem; font-family:'Teko';">30</h2>
-            
-            <div id="naming-ui" class="hidden" style="width:100%;">
-                <p style="color:var(--gold); font-size:1.2rem;">YOU ARE CAPTAIN!</p>
-                <input type="text" id="team-name-in" class="input-box" placeholder="ENTER TEAM NAME">
-                <button class="btn btn-gold" onclick="submitName()">SUBMIT</button>
-            </div>
-            
-            <p id="naming-wait" style="color:#666;">Waiting for Captains...</p>
+    <div id="s-naming" class="screen" style="justify-content:center; text-align:center;">
+        <h2 id="name-timer" style="color:var(--gold); font-size:3rem; font-family:'Teko';">30</h2>
+        
+        <div id="naming-ui" class="hidden">
+            <p style="color:var(--gold);">YOU ARE CAPTAIN!</p>
+            <input type="text" id="team-name-in" class="input-box" placeholder="ENTER TEAM NAME">
+            <button class="btn btn-gold" onclick="submitName()">SUBMIT</button>
         </div>
+        
+        <p id="naming-wait" style="color:#666;">Waiting for Captains...</p>
     </div>
 
-    <div id="s-toss" class="screen" style="justify-content:center;">
-        <div class="container" style="text-align:center;">
-            <h1 class="font-teko" style="font-size:4rem; color:var(--gold);">COIN TOSS</h1>
-            <h2 id="toss-res" style="color:white;">FLIPPING...</h2>
-            
-            <div id="toss-ui" class="hidden" style="width:100%; margin-top:20px;">
-                <p style="color:var(--gold);">YOU WON! CHOOSE:</p>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn btn-blue" onclick="pickToss('BAT')">BAT</button>
-                    <button class="btn btn-red" onclick="pickToss('BOWL')">BOWL</button>
-                </div>
+    <div id="s-toss" class="screen" style="justify-content:center; text-align:center;">
+        <h1 style="font-family:'Teko'; font-size:4rem; color:var(--gold);">TOSS</h1>
+        <h2 id="toss-res" style="color:#fff;">FLIPPING...</h2>
+        
+        <div id="toss-ui" class="hidden" style="margin-top:20px;">
+            <p style="color:var(--gold);">YOU WON! CHOOSE:</p>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button class="btn btn-blue" style="width:auto;" onclick="pickToss('BAT')">BAT</button>
+                <button class="btn btn-red" style="width:auto;" onclick="pickToss('BOWL')">BOWL</button>
             </div>
-            
-            <p id="toss-wait" style="color:#666;">Waiting for Winner...</p>
         </div>
+        <p id="toss-wait" class="hidden" style="color:#666;">Winner is deciding...</p>
     </div>
 
-    <div id="s-selection" class="screen">
-        <div style="padding:15px; text-align:center; background:#1a1a1a;">
-            <div id="sel-title" style="color:var(--gold); font-size:1.5rem; font-family:'Teko';">SELECT PLAYER</div>
+    <div id="s-sel" class="screen">
+        <div style="padding:10px; text-align:center; background:#1a1a1a;">
+            <div id="sel-title" style="color:var(--gold); font-family:'Teko'; font-size:1.5rem;">SELECT PLAYER</div>
         </div>
-        <div id="sel-list" style="padding:15px; display:flex; flex-direction:column; gap:10px;"></div>
+        <div id="sel-list" style="padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 
     <div id="s-game" class="screen">
         <div class="scoreboard">
-            <div class="score-box" style="text-align:left;">
-                <div id="bat-name" style="color:var(--blue); font-weight:bold;">BAT</div>
-                <div id="score-disp" class="big-digit">0/0</div>
+            <div>
+                <div id="bat-name" style="color:var(--blue); font-size:0.8rem;">BAT</div>
+                <div id="score-disp" class="sc-val">0/0</div>
             </div>
-            <div class="score-box">
-                <div class="small-lbl" id="target-disp"></div>
-                <div id="game-status" style="color:var(--gold); font-family:'Teko'; font-size:1.5rem;">PLAY</div>
+            <div style="text-align:center;">
+                <div class="sc-lbl" id="target-disp"></div>
+                <div id="game-st" style="color:var(--gold); font-family:'Teko'; font-size:1.2rem;">PLAY</div>
             </div>
-            <div class="score-box" style="text-align:right;">
-                <div id="bowl-name" style="color:var(--red); font-weight:bold;">BOWL</div>
-                <div id="overs-disp" class="big-digit">0.0</div>
+            <div style="text-align:right;">
+                <div id="bowl-name" style="color:var(--red); font-size:0.8rem;">BOWL</div>
+                <div id="over-disp" class="sc-val">0.0</div>
             </div>
         </div>
 
         <div class="pitch">
-            <div id="slot-opp" class="card-slot"><span style="color:#555;">OPP</span></div>
+            <div id="slot-opp" class="card-slot"><span style="color:#555; font-size:0.8rem;">OPP</span></div>
             <div style="width:60%; height:2px; background:rgba(255,255,255,0.1); margin:10px 0;"></div>
-            <div id="slot-me" class="card-slot"><span style="color:#555;">YOU</span></div>
-            
-            <div id="result-pop" style="position:absolute; font-size:5rem; font-family:'Teko'; display:none; text-shadow:0 0 20px black; z-index:50;">OUT!</div>
+            <div id="slot-me" class="card-slot"><span style="color:#555; font-size:0.8rem;">YOU</span></div>
+            <div id="res-pop" style="position:absolute; font-size:5rem; font-family:'Teko'; display:none; text-shadow:0 0 20px black; z-index:50;">OUT!</div>
         </div>
 
-        <div id="hand-area" class="hand-scroll"></div>
-        <div id="spec-msg" class="hidden" style="text-align:center; padding:20px; color:#666;">WATCHING...</div>
+        <div id="hand-area" class="hand-area"></div>
+        <div id="spec-msg" class="hidden" style="text-align:center; padding:20px; color:#555;">WATCHING...</div>
     </div>
 
-    <div id="s-over" class="screen" style="justify-content:center; align-items:center;">
-        <h1 style="color:var(--gold); font-size:4rem; font-family:'Teko';">MATCH OVER</h1>
-        <h2 id="win-msg" style="margin-bottom:20px;">TEAM WINS</h2>
-        <button class="btn btn-gold" style="width:auto;" onclick="location.reload()">MAIN MENU</button>
+    <div id="s-over" class="screen" style="justify-content:center; text-align:center;">
+        <h1 style="color:var(--gold); font-family:'Teko'; font-size:4rem;">GAME OVER</h1>
+        <h2 id="win-msg">TEAM WINS</h2>
+        <button class="btn btn-gold" style="width:auto; margin-top:20px;" onclick="location.reload()">MAIN MENU</button>
     </div>
 
     <script type="module">
@@ -266,12 +227,9 @@
         const CARDS = { BAT: ['6 RUNS','4 RUNS','4 RUNS','2 RUNS','2 RUNS','1 RUN','1 RUN','DEFENSE'], BOWL: ['YORKER','BOUNCER','FAST','FAST','SPIN','SPIN','FULL TOSS','FULL TOSS'] };
         const MATRIX = { '6 RUNS':{'FULL TOSS':6,'SPIN':6,'FAST':-1,'YORKER':-1,'BOUNCER':0}, '4 RUNS':{'FULL TOSS':4,'BOUNCER':4,'FAST':-1,'YORKER':-1,'SPIN':0}, '2 RUNS':{'SPIN':2,'FAST':2,'BOUNCER':-1,'YORKER':-1,'FULL TOSS':0}, '1 RUN':{'FAST':1,'YORKER':1,'SPIN':-1,'BOUNCER':-1,'FULL TOSS':0}, 'DEFENSE':{'FAST':0,'YORKER':0,'FULL TOSS':-1,'SPIN':0,'BOUNCER':0} };
 
-        // --- STATE ---
         let myName = sessionStorage.getItem('cd_name') || "", roomCode = sessionStorage.getItem('cd_room') || "", isHost = false, myTeam = "A";
         let localState = null, lastBall = -1;
 
-        // --- GLOBAL BINDINGS ---
-        window.toggleRules = () => { const el = document.getElementById('rules-modal'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; };
         const $ = id => document.getElementById(id);
         const show = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); };
 
@@ -299,22 +257,17 @@
             if(isHost) setInterval(hostLoop, 1000);
         }
 
-        // --- HOST SERVER LOOP ---
+        // --- HOST LOOP ---
         function hostLoop() {
             if(!localState || !localState.timerEnd) return;
             const left = localState.timerEnd - Math.floor(Date.now()/1000);
-            
-            // Auto Naming Force
-            if(localState.state === 'NAMING' && left <= 0) {
-                update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
-            }
-            // Auto Game Force
+            if(localState.state === 'NAMING' && left <= 0) update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
             if(localState.state === 'SELECTION' && left <= 0) window.forceSel();
             if(localState.state === 'GAME' && left <= 0) window.forceGame();
         }
 
         function render(data) {
-            $('status-display').innerText = data.state;
+            $('status-txt').innerText = data.state;
             if(data.players && data.players[myName]) myTeam = data.players[myName].team;
             
             if(data.state === 'LOBBY') renderLobby(data);
@@ -329,22 +282,36 @@
         function renderLobby(data) {
             show('s-lobby');
             $('list-red').innerHTML = ''; $('list-blue').innerHTML = '';
+            
             Object.keys(data.players).forEach(p => {
                 const tm = data.players[p].team;
                 const isCap = data.teams[tm].captain === p;
                 const div = document.createElement('div');
-                div.className = `p-card ${tm==='A'?'red':'blue'}`;
-                div.innerHTML = `<span>${p} ${isCap?'👑':''}</span>` + (isHost ? `<div><span class="action-icon" onclick="swap('${p}','${tm}')">⇄</span><span class="action-icon" onclick="setCap('${p}','${tm}')">👑</span></div>` : '');
-                (tm==='A'?$('list-red'):$('list-blue')).appendChild(div);
+                div.className = `p-row ${tm==='A'?'red':'blue'}`;
+                div.innerHTML = `<span>${p} ${isCap ? '<span class="c-badge">C</span>':''}</span>`;
+                
+                if(isHost) {
+                    div.innerHTML += `<div><span class="swap-icon" onclick="swap('${p}','${tm}')">⇄</span><span class="swap-icon" onclick="setCap('${p}','${tm}')">👑</span></div>`;
+                }
+                (tm==='A' ? $('list-red') : $('list-blue')).appendChild(div);
             });
-            if(isHost) { $('host-controls').classList.remove('hidden'); $('wait-msg').classList.add('hidden'); }
+
+            if(isHost) { $('host-panel').classList.remove('hidden'); $('wait-msg').classList.add('hidden'); }
         }
+
+        window.swap = (p, t) => update(ref(db, `rooms/${roomCode}/players/${p}/team`), t==='A'?'B':'A');
+        window.setCap = (p, t) => update(ref(db, `rooms/${roomCode}/teams/${t}/captain`), p);
         
-        // Window functions for HTML onclicks
-        window.swap = (p,t) => update(ref(db, `rooms/${roomCode}/players/${p}/team`), t==='A'?'B':'A');
-        window.setCap = (p,t) => update(ref(db, `rooms/${roomCode}/teams/${t}/captain`), p);
-        window.randomizeTeams = () => { /* Logic omitted for brevity, manual swap available */ };
-        window.randomizeCaptains = () => {
+        window.shuffleTeams = () => {
+            const players = Object.keys(localState.players);
+            // Fisher-Yates
+            for(let i=players.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [players[i], players[j]] = [players[j], players[i]]; }
+            let updates = {};
+            players.forEach((p,i) => updates[`players/${p}/team`] = (i%2===0?'A':'B'));
+            update(ref(db, `rooms/${roomCode}`), updates);
+        };
+
+        window.autoCaptains = () => {
             const p = localState.players;
             const tA = Object.keys(p).filter(k=>p[k].team==='A');
             const tB = Object.keys(p).filter(k=>p[k].team==='B');
@@ -353,14 +320,11 @@
             if(tB.length) up['teams/B/captain'] = tB[Math.floor(Math.random()*tB.length)];
             update(ref(db, `rooms/${roomCode}`), up);
         };
-        
+
         window.startGame = () => {
-            const p = localState.players;
-            const tA = Object.keys(p).filter(k=>p[k].team==='A');
-            const tB = Object.keys(p).filter(k=>p[k].team==='B');
-            let up = { state: 'NAMING', overs: parseInt($('overs-select').value), timerEnd: Math.floor(Date.now()/1000)+30 };
-            if(!localState.teams.A.captain && tA.length) up['teams/A/captain'] = tA[Math.floor(Math.random()*tA.length)];
-            if(!localState.teams.B.captain && tB.length) up['teams/B/captain'] = tB[Math.floor(Math.random()*tB.length)];
+            let up = { state: 'NAMING', overs: parseInt($('overs-sel').value), timerEnd: Math.floor(Date.now()/1000)+30 };
+            // Ensure captains exist
+            if(!localState.teams.A.captain) window.autoCaptains();
             update(ref(db, 'rooms/'+roomCode), up);
         };
 
@@ -371,13 +335,9 @@
             $('name-timer').innerText = left;
             
             const isCap = data.teams[myTeam].captain === myName;
-            if(isCap && !data.teams[myTeam].isNamed) { 
-                $('naming-ui').classList.remove('hidden'); 
-                $('naming-wait').classList.add('hidden');
-            } else { 
-                $('naming-ui').classList.add('hidden'); 
-                $('naming-wait').classList.remove('hidden');
-            }
+            if(isCap && !data.teams[myTeam].isNamed) { $('naming-ui').classList.remove('hidden'); $('naming-wait').classList.add('hidden'); }
+            else { $('naming-ui').classList.add('hidden'); $('naming-wait').classList.remove('hidden'); }
+
             if(isHost && data.teams.A.isNamed && data.teams.B.isNamed) update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
         }
         window.submitName = () => {
@@ -407,7 +367,7 @@
 
         // 4. SELECTION
         function renderSel(data) {
-            show('s-selection');
+            show('s-sel');
             const isBat = data.batTeam === myTeam;
             const isCap = data.teams[myTeam].captain === myName;
             $('sel-title').innerText = isCap ? `PICK ${isBat?'BATTER':'BOWLER'}` : "WAITING FOR CAPTAIN";
@@ -416,7 +376,7 @@
             if(isCap) {
                 Object.keys(data.players).forEach(p => {
                     if(data.players[p].team === myTeam) {
-                        const b = document.createElement('button'); b.className = "btn btn-outline"; b.innerText = p; b.style.marginBottom="10px";
+                        const b = document.createElement('button'); b.className = "btn btn-outline"; b.innerText = p; b.style.marginBottom="5px";
                         b.onclick = () => update(ref(db, `rooms/${roomCode}/turn/${isBat?'striker':'bowler'}`), p);
                         $('sel-list').appendChild(b);
                     }
@@ -438,10 +398,10 @@
         // 5. GAME
         function renderGame(data) {
             show('s-game');
-            const bt = data.teams[data.batTeam].name; const bl = data.teams[data.bowlTeam].name;
-            $('bat-name').innerText = bt; $('bowl-name').innerText = bl;
+            $('bat-name').innerText = data.teams[data.batTeam].name;
+            $('bowl-name').innerText = data.teams[data.bowlTeam].name;
             $('score-disp').innerText = `${data.score.r}/${data.score.w}`;
-            $('overs-disp').innerText = `${Math.floor(data.score.b/6)}.${data.score.b%6}`;
+            $('over-disp').innerText = `${Math.floor(data.score.b/6)}.${data.score.b%6}`;
             if(data.score.target) $('target-disp').innerText = `TARGET: ${data.score.target}`;
             
             const s = data.turn.striker; const b = data.turn.bowler;
@@ -461,10 +421,10 @@
 
             if(data.turn.result && data.score.b !== lastBall) {
                 lastBall = data.score.b;
-                $('result-pop').style.display='block'; $('result-pop').innerText=data.turn.result;
-                $('result-pop').style.color = data.turn.result==='OUT!'?'var(--red)':'var(--gold)';
-                $('slot-opp').innerHTML = `<div class="card ${amStriker?'card-bowl':'card-bat'}">${oppC}</div>`; // Reveal
-                setTimeout(()=>{ $('result-pop').style.display='none'; if(isHost) nextBall(); }, 2500);
+                $('res-pop').style.display='block'; $('res-pop').innerText=data.turn.result;
+                $('res-pop').style.color = data.turn.result==='OUT!'?'var(--red)':'var(--gold)';
+                $('slot-opp').innerHTML = `<div class="card ${amStriker?'card-bowl':'card-bat'}">${oppC}</div>`; 
+                setTimeout(()=>{ $('res-pop').style.display='none'; if(isHost) nextBall(); }, 2500);
             }
         }
 
@@ -479,7 +439,6 @@
             });
         }
 
-        // Host Logic Game Loop
         setInterval(() => {
             if(!isHost || !localState || localState.state !== 'GAME') return;
             const t = localState.turn;
