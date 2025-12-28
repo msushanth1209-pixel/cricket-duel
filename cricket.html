@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cricket Duel</title>
     <style>
-        /* --- VISUAL THEME --- */
+        /* --- 1. VISUAL THEME --- */
         :root {
             --pitch-green: #27ae60;
             --pitch-light: #2ecc71;
@@ -26,9 +26,10 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            user-select: none; /* Prevents text selection on taps */
         }
 
-        /* --- SANDWICH LAYOUT --- */
+        /* --- 2. HEADER (Fixed) --- */
         header {
             height: 60px;
             background: rgba(0,0,0,0.4);
@@ -39,8 +40,10 @@
             padding: 0 15px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             flex-shrink: 0;
+            z-index: 20;
         }
 
+        /* --- 3. MAIN (Scrollable) --- */
         main {
             flex: 1;
             overflow-y: auto;
@@ -50,11 +53,13 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            z-index: 1;
         }
 
+        /* --- 4. FOOTER (Fixed) --- */
         footer {
             height: 100px;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255,255,255,0.1);
             display: flex;
@@ -63,16 +68,17 @@
             overflow-x: auto;
             white-space: nowrap;
             flex-shrink: 0;
+            z-index: 20;
         }
 
-        /* --- UI ELEMENTS --- */
+        /* --- UI COMPONENTS --- */
         h1, h2, h3 { margin: 0 0 10px 0; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
 
         .btn {
             background: linear-gradient(135deg, var(--pitch-light), var(--pitch-green));
             border: none;
             color: white;
-            padding: 12px 20px;
+            padding: 10px 20px;
             border-radius: 50px;
             font-weight: 800;
             font-size: 0.9rem;
@@ -82,15 +88,24 @@
             transition: transform 0.1s;
         }
         .btn:active { transform: scale(0.95); }
-        .btn-danger { background: linear-gradient(135deg, var(--danger-red), #c0392b); }
-        .btn-blue { background: linear-gradient(135deg, var(--mi-blue), #2980b9); }
-        .btn-small { padding: 4px 10px; font-size: 0.7rem; margin-left: 5px; box-shadow: none; }
+        .btn-danger { background: linear-gradient(135deg, var(--danger-red), #c0392b); box-shadow: none; }
+        .btn-blue { background: linear-gradient(135deg, var(--mi-blue), #2980b9); box-shadow: none; }
+        .btn-icon { padding: 8px 12px; font-size: 1.2rem; background: rgba(255,255,255,0.1); margin-left: 5px; }
+
+        /* Small Buttons for Host Actions */
+        .btn-mini { 
+            padding: 4px 8px; 
+            font-size: 0.7rem; 
+            margin-left: 6px; 
+            border-radius: 6px;
+            box-shadow: none;
+        }
 
         .card-btn {
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            width: 85px;
+            min-width: 85px;
             height: 70px;
             margin-right: 10px;
             background: var(--card-white);
@@ -118,13 +133,13 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
         .player-item { 
-            padding: 8px; 
+            padding: 10px; 
             border-bottom: 1px solid rgba(255,255,255,0.05); 
             display: flex; 
             justify-content: space-between; 
             align-items: center;
         }
-        .host-actions { display: flex; gap: 5px; }
+        .host-actions { display: flex; align-items: center; }
 
         /* GAMEPLAY */
         .scoreboard {
@@ -161,18 +176,28 @@
         .spinning { animation: flip 0.6s infinite linear; }
         @keyframes flip { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
 
-        #result-overlay {
+        /* MODALS */
+        .overlay-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 100;
             display: none; flex-direction: column; align-items: center; justify-content: center;
+            overflow-y: auto; padding: 20px; box-sizing: border-box;
         }
+        .rules-table { width: 100%; max-width: 500px; border-collapse: collapse; margin-top: 20px; color: #fff; font-size: 0.8rem; }
+        .rules-table th, .rules-table td { border: 1px solid #555; padding: 8px; text-align: left; }
+        .rules-table th { background: #333; color: var(--csk-yellow); }
+
     </style>
 </head>
 <body>
 
     <header>
         <div style="font-weight:900; font-size:1.1rem; color:var(--pitch-light);">CRICKET DUEL</div>
-        <button id="force-btn" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.7rem; display:none;">FORCE ⏩</button>
+        <div style="display:flex; align-items:center;">
+            <button class="btn btn-icon" onclick="document.getElementById('rules-overlay').style.display='flex'">?</button>
+            <button class="btn btn-icon btn-danger" onclick="window.location.reload()" style="font-size:0.8rem; font-weight:bold;">EXIT</button>
+            <button id="force-btn" class="btn btn-danger btn-mini" style="display:none; margin-left:10px;">FORCE ⏩</button>
+        </div>
     </header>
 
     <main>
@@ -185,6 +210,7 @@
 
         <div id="screen-lobby" class="screen">
             <h2>Room: <span id="lobby-code" style="color:var(--pitch-light)"></span></h2>
+            <div id="host-badge" style="display:none; text-align:center; color:gold; margin-bottom:10px;">⭐ YOU ARE THE HOST ⭐</div>
             
             <div class="team-box" style="border-left: 5px solid var(--danger-red);">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -202,11 +228,9 @@
                 <div id="list-b" style="margin-top:10px;"></div>
             </div>
 
-            <div id="host-controls" style="display:none; text-align:center;">
-                <p style="color:#7f8c8d; font-size:0.8rem;">HOST COMMANDS</p>
-                <button class="btn btn-blue" style="margin-bottom:10px;" onclick="app.hostShuffle()">🔀 Shuffle Teams</button>
-                <br>
-                <button class="btn" onclick="app.hostStart()">START MATCH</button>
+            <div id="host-controls" style="display:none; margin-top:20px; border-top:1px solid #444; padding-top:15px;">
+                <button class="btn btn-blue" style="width:100%; margin-bottom:10px;" onclick="app.hostShuffle()">🔀 SHUFFLE TEAMS</button>
+                <button class="btn" style="width:100%" onclick="app.hostStart()">START MATCH</button>
             </div>
             <p id="lobby-msg" style="text-align:center; color:#7f8c8d; margin-top:10px;">Waiting for players...</p>
         </div>
@@ -269,17 +293,35 @@
 
     <footer id="foot-hand"></footer>
 
-    <div id="result-overlay">
+    <div id="result-overlay" class="overlay-modal">
         <div id="res-text" style="font-size:4rem; font-weight:900; color:var(--csk-yellow); margin-bottom:10px;">OUT!</div>
         <div id="res-desc" style="font-size:1.2rem; color:#bdc3c7; margin-bottom:30px;">Clean Bowled</div>
         <button class="btn" onclick="app.closeOverlay()">NEXT BALL</button>
+    </div>
+
+    <div id="rules-overlay" class="overlay-modal" style="display:none; justify-content:flex-start; padding-top:60px;">
+        <h2 style="color:var(--csk-yellow);">GAME RULES</h2>
+        <p style="text-align:center; color:#ccc; font-size:0.9rem;">Predict your opponent's move to score or take wickets.</p>
+        <table class="rules-table">
+            <thead><tr><th>BAT CARD</th><th>VS BOWLER CARD</th><th>RESULT</th></tr></thead>
+            <tbody>
+                <tr><td>6 RUNS</td><td>Fast / Yorker</td><td>OUT</td></tr>
+                <tr><td>6 RUNS</td><td>Spin / Full Toss</td><td>6 Runs</td></tr>
+                <tr><td>4 RUNS</td><td>Fast / Yorker</td><td>OUT</td></tr>
+                <tr><td>4 RUNS</td><td>Bouncer / Full Toss</td><td>4 Runs</td></tr>
+                <tr><td>2 RUNS</td><td>Bouncer / Yorker</td><td>OUT</td></tr>
+                <tr><td>1 RUN</td><td>Spin / Bouncer</td><td>OUT</td></tr>
+                <tr><td>DEFENSE</td><td>Full Toss</td><td>OUT</td></tr>
+                <tr><td>DEFENSE</td><td>Any Other</td><td>0 Runs</td></tr>
+            </tbody>
+        </table>
+        <button class="btn" style="margin-top:20px;" onclick="document.getElementById('rules-overlay').style.display='none'">CLOSE</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyC--gCjpWdYsezrqvQ4tAzvtLKGW_oRtsM",
             authDomain: "cricketduel.firebaseapp.com",
@@ -294,7 +336,7 @@
         const fApp = initializeApp(firebaseConfig);
         const db = getDatabase(fApp);
 
-        // --- GAME LOGIC MATRIX ---
+        // --- MATRIX & CONSTANTS ---
         const MATRIX = {
             "6 RUNS": { "SPIN": {v:6, t:"Smashed!"}, "FULL TOSS": {v:6, t:"Punished!"}, "FAST": {v:"OUT", t:"Pace!"}, "YORKER": {v:"OUT", t:"Bowled!"}, "BOUNCER": {v:0, t:"Missed"} },
             "4 RUNS": { "BOUNCER": {v:4, t:"Pulled!"}, "FULL TOSS": {v:4, t:"Driven!"}, "FAST": {v:"OUT", t:"Edged!"}, "YORKER": {v:"OUT", t:"LBW!"}, "SPIN": {v:0, t:"Dot Ball"} },
@@ -308,7 +350,7 @@
         // --- STATE ---
         let room = "";
         let me = "";
-        let team = "";
+        let myTeam = ""; 
         let isHost = false;
         let localData = null;
 
@@ -316,15 +358,17 @@
             join: () => {
                 const c = document.getElementById('inp-room').value.toUpperCase().trim();
                 const n = document.getElementById('inp-name').value.trim();
-                if(!c || !n) return alert("Please enter Code and Name");
+                if(!c || !n) return alert("Please enter Room Code & Name");
                 room = c; me = n;
 
                 const rRef = ref(db, `rooms/${room}`);
                 get(rRef).then(snap => {
                     if(!snap.exists()) {
+                        // NEW ROOM -> I AM HOST
                         isHost = true;
                         document.getElementById('force-btn').style.display = "block";
                         set(rRef, {
+                            host: me,
                             state: "LOBBY",
                             players: { [me]: { team:"A", status:"ON" } },
                             teams: { A:{name:"Red", isNamed:false}, B:{name:"Blue", isNamed:false} },
@@ -332,62 +376,67 @@
                             turn: { striker: "", bowler: "", cBat: "", cBowl: "", result: "" }
                         });
                     } else {
-                        const p = snap.val().players || {};
+                        // EXISTING ROOM
+                        const val = snap.val();
+                        if (val.host === me) {
+                            isHost = true; // RECLAIM HOST
+                            document.getElementById('force-btn').style.display = "block";
+                        }
+                        const p = val.players || {};
                         const t = Object.keys(p).length % 2 === 0 ? "A" : "B";
-                        update(ref(db, `rooms/${room}/players/${me}`), { team: t, status:"ON" });
+                        const existingTeam = p[me] ? p[me].team : t;
+                        update(ref(db, `rooms/${room}/players/${me}`), { team: existingTeam, status:"ON" });
                     }
+                    // Start Listener
                     onValue(rRef, s => { localData = s.val(); app.render(localData); if(isHost) app.hostLoop(localData); });
                 });
             },
 
             render: (d) => {
                 if(!d) return;
+                
+                // DETERMINE MY TEAM (Robust check)
+                if(d.players && d.players[me]) myTeam = d.players[me].team;
+
                 document.querySelectorAll('.screen').forEach(e => e.classList.remove('active'));
                 document.getElementById(`screen-${d.state.toLowerCase()}`).classList.add('active');
 
-                // LOBBY RENDERING
+                // LOBBY
                 if(d.state === "LOBBY") {
                     document.getElementById('lobby-code').innerText = room;
+                    document.getElementById('host-badge').style.display = isHost ? 'block' : 'none';
+                    document.getElementById('host-controls').style.display = isHost ? 'block' : 'none';
+
                     const lA = document.getElementById('list-a');
                     const lB = document.getElementById('list-b');
                     lA.innerHTML = ""; lB.innerHTML = "";
                     
                     Object.entries(d.players||{}).forEach(([k,v]) => {
-                        // Host Controls: Swap (⇄) and Captain (©)
-                        let controls = "";
+                        let ctrls = "";
                         if(isHost) {
-                            const newTeam = v.team === "A" ? "B" : "A";
-                            controls = `
-                                <div class="host-actions">
-                                    <button class="btn btn-small" style="background:#f39c12" onclick="app.hostSetCap('${k}', '${v.team}')">©</button>
-                                    <button class="btn btn-small" style="background:#95a5a6" onclick="app.hostSwap('${k}', '${newTeam}')">⇄</button>
-                                </div>
-                            `;
+                            const newT = v.team === "A" ? "B" : "A";
+                            ctrls = `<div class="host-actions">
+                                <button class="btn btn-mini" style="background:#f39c12" onclick="app.hostSetCap('${k}', '${v.team}')">©</button>
+                                <button class="btn btn-mini" style="background:#7f8c8d" onclick="app.hostSwap('${k}', '${newT}')">⇄</button>
+                            </div>`;
                         }
-
-                        const html = `<div class="player-item"><span>${k}</span> ${controls}</div>`;
-                        if(v.team==="A") lA.innerHTML+=html; else lB.innerHTML+=html;
-                        if(k===me) team = v.team;
+                        const h = `<div class="player-item"><span>${k}</span> ${ctrls}</div>`;
+                        if(v.team==="A") lA.innerHTML+=h; else lB.innerHTML+=h;
                     });
-
-                    // Show Captains
                     if(d.teams.A.captain) document.getElementById('cap-a-name').innerText = "⭐ " + d.teams.A.captain;
                     if(d.teams.B.captain) document.getElementById('cap-b-name').innerText = "⭐ " + d.teams.B.captain;
-                    
-                    if(isHost) document.getElementById('host-controls').style.display = "block";
                 }
 
                 // NAMING
                 if(d.state === "NAMING") {
-                    const myT = d.teams[team];
-                    const isCap = myT.captain === me;
+                    const isCap = d.teams[myTeam].captain === me;
                     const ui = document.getElementById('naming-ui');
-                    if(isCap && !myT.isNamed) {
+                    if(isCap && !d.teams[myTeam].isNamed) {
                         ui.style.display = "block";
-                        document.getElementById('naming-msg').innerText = "Captain, enter your team name:";
+                        document.getElementById('naming-msg').innerText = "Captain, name your team:";
                     } else {
                         ui.style.display = "none";
-                        document.getElementById('naming-msg').innerText = `Waiting for ${myT.captain} to name team...`;
+                        document.getElementById('naming-msg').innerText = "Waiting for captains...";
                     }
                 }
 
@@ -397,14 +446,15 @@
                     const coin = document.getElementById('coin');
                     const ui = document.getElementById('toss-ui');
                     const msg = document.getElementById('toss-msg');
+                    
                     coin.className = t.step==="SPIN" ? "spinning" : "";
                     coin.innerText = t.step==="DECIDE" ? (t.call==="HEADS"?"H":"T") : "?";
                     ui.innerHTML = "";
 
-                    if(t.step === "CALL" && team === "A" && d.teams.A.captain === me) {
+                    if(t.step === "CALL" && myTeam === "A" && d.teams.A.captain === me) {
                         msg.innerText = "Call HEADS or TAILS";
                         ui.innerHTML = `<button class="btn" onclick="app.tossCall('HEADS')">HEADS</button> <button class="btn" onclick="app.tossCall('TAILS')">TAILS</button>`;
-                    } else if (t.step === "DECIDE" && t.winner === team && d.teams[team].captain === me) {
+                    } else if (t.step === "DECIDE" && t.winner === myTeam && d.teams[myTeam].captain === me) {
                         msg.innerText = "YOU WON! Choose:";
                         ui.innerHTML = `<button class="btn" onclick="app.tossDecide('BAT')">BAT</button> <button class="btn" onclick="app.tossDecide('BOWL')">BOWL</button>`;
                     } else {
@@ -414,8 +464,8 @@
 
                 // SELECTION
                 if(d.state === "SELECTION") {
-                    const isBat = d.batTeam === team;
-                    const isCap = d.teams[team].captain === me;
+                    const isBat = d.batTeam === myTeam;
+                    const isCap = d.teams[myTeam].captain === me;
                     const role = isBat ? "Striker" : "Bowler";
                     
                     document.getElementById('sel-title').innerText = `Pick a ${role}`;
@@ -426,11 +476,12 @@
 
                     if(picked) {
                         document.getElementById('sel-msg').innerText = `${role} Selected: ${picked}`;
-                        if(!isCap && !picked) document.getElementById('sel-msg').innerText = "Waiting for captain...";
+                        // If I am just a player (not cap) I wait
+                        if(!isCap) document.getElementById('sel-msg').innerText += " (Waiting for opponent)";
                     } else if(isCap) {
-                        document.getElementById('sel-msg').innerText = "Tap a player below:";
+                        document.getElementById('sel-msg').innerText = "Tap a player to send to pitch:";
                         Object.entries(d.players).forEach(([k,v]) => {
-                            if(v.team === team) {
+                            if(v.team === myTeam) {
                                 list.innerHTML += `<button class="btn" style="width:100%; margin-bottom:5px;" onclick="app.selectPlayer('${k}')">${k}</button>`;
                             }
                         });
@@ -445,7 +496,6 @@
                     document.getElementById('sb-bowl').innerText = d.teams[d.bowlTeam].name;
                     document.getElementById('sb-score').innerText = `${d.score.r}/${d.score.w}`;
                     document.getElementById('sb-overs').innerText = Math.floor(d.score.b/6) + "." + (d.score.b%6);
-                    document.getElementById('sb-target').innerText = d.score.target || "--";
 
                     const turn = d.turn || {};
                     let role = "spec";
@@ -454,9 +504,11 @@
 
                     const foot = document.getElementById('foot-hand');
                     foot.innerHTML = "";
+                    
+                    // CARD GENERATION LOGIC
                     if(role === "bat") BAT_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
                     else if(role === "bowl") BOWL_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
-                    else foot.innerHTML = "<p style='width:100%; text-align:center; color:#7f8c8d'>Spectating...</p>";
+                    else foot.innerHTML = "<p style='width:100%; text-align:center; color:#ccc'>Spectating...</p>";
 
                     const sMe = document.getElementById('slot-me');
                     const sOpp = document.getElementById('slot-opp');
@@ -492,10 +544,9 @@
                 }
             },
 
-            // --- HOST ACTIONS ---
+            // --- HOST ONLY ACTIONS ---
             hostSwap: (pName, newTeam) => {
                 update(ref(db, `rooms/${room}/players/${pName}`), { team: newTeam });
-                // Reset captains if swapping a captain
                 if(localData.teams.A.captain === pName) update(ref(db, `rooms/${room}/teams/A/captain`), null);
                 if(localData.teams.B.captain === pName) update(ref(db, `rooms/${room}/teams/B/captain`), null);
             },
@@ -504,61 +555,64 @@
             },
             hostShuffle: () => {
                 const players = Object.keys(localData.players);
-                // Fisher-Yates Shuffle
                 for (let i = players.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [players[i], players[j]] = [players[j], players[i]];
                 }
                 const updates = {};
-                players.forEach((p, i) => {
-                    updates[`rooms/${room}/players/${p}/team`] = i % 2 === 0 ? "A" : "B";
-                });
-                // Clear Captains
+                players.forEach((p, i) => { updates[`rooms/${room}/players/${p}/team`] = i % 2 === 0 ? "A" : "B"; });
                 updates[`rooms/${room}/teams/A/captain`] = null;
                 updates[`rooms/${room}/teams/B/captain`] = null;
                 update(ref(db), updates);
             },
             hostStart: () => {
-                // Validation: Ensure captains exist
-                if(!localData.teams.A.captain || !localData.teams.B.captain) {
-                    return alert("Please assign captains for both teams first!");
-                }
+                if(!localData.teams.A.captain || !localData.teams.B.captain) return alert("Assign captains first!");
                 update(ref(db, `rooms/${room}`), {state:"NAMING"});
             },
 
             // --- PLAYER ACTIONS ---
             submitName: () => {
                 const n = document.getElementById('inp-teamname').value;
-                update(ref(db, `rooms/${room}/teams/${team}`), {name:n, isNamed:true});
+                update(ref(db, `rooms/${room}/teams/${myTeam}`), {name:n, isNamed:true});
             },
             tossCall: (c) => update(ref(db, `rooms/${room}/toss`), {call:c, step:"SPIN"}),
             tossDecide: (c) => {
-                const l = team==="A"?"B":"A";
-                update(ref(db, `rooms/${room}`), {batTeam:team, bowlTeam:l, state:"SELECTION"});
+                const l = myTeam==="A"?"B":"A";
+                update(ref(db, `rooms/${room}`), {batTeam:myTeam, bowlTeam:l, state:"SELECTION"});
                 update(ref(db, `rooms/${room}/turn`), {striker:"", bowler:"", cBat:"", cBowl:"", result:""});
             },
+            
             selectPlayer: (p) => {
-                const isBat = localData.batTeam === team;
+                // Determine which field I am filling based on MY TEAM, not Host data
+                const isBat = localData.batTeam === myTeam;
                 const field = isBat ? "striker" : "bowler";
                 update(ref(db, `rooms/${room}/turn`), { [field]: p });
             },
+
             play: (c) => {
-                const isBat = localData.batTeam === team;
+                // Determine if I am batting or bowling
+                const isBat = localData.batTeam === myTeam;
                 const field = isBat ? "cBat" : "cBowl";
                 update(ref(db, `rooms/${room}/turn`), { [field]: c });
             },
+            
             closeOverlay: () => {
+                // If I am Host, I trigger the reset for everyone
                 if(isHost) {
                      update(ref(db, `rooms/${room}`), { state:"SELECTION" });
                      update(ref(db, `rooms/${room}/turn`), { cBat:"", cBowl:"", result:"", desc:"", striker:null, bowler:null }); 
                 }
             },
 
-            // --- SERVER LOOP ---
+            // --- HOST SERVER LOOP (Background Logic) ---
             hostLoop: (d) => {
+                if(!d) return;
+
+                // Naming -> Toss
                 if(d.state==="NAMING" && d.teams.A.isNamed && d.teams.B.isNamed) {
                     update(ref(db, `rooms/${room}`), {state:"TOSS", toss:{step:"CALL"}});
                 }
+                // Toss Spin
                 if(d.state==="TOSS" && d.toss.step==="SPIN" && !d.toss.winner) {
                     setTimeout(() => {
                         const res = Math.random()>0.5?"HEADS":"TAILS";
@@ -566,20 +620,27 @@
                         update(ref(db, `rooms/${room}/toss`), {winner:w, step:"DECIDE", call:res});
                     }, 2000);
                 }
+                
+                // Selection -> Game (Wait for both)
                 if(d.state==="SELECTION" && d.turn && d.turn.striker && d.turn.bowler) {
                     update(ref(db, `rooms/${room}`), {state:"GAME"});
                 }
+
+                // Game Logic
                 if(d.state==="GAME" && d.turn && d.turn.cBat && d.turn.cBowl && !d.turn.result) {
                     const resObj = MATRIX[d.turn.cBat][d.turn.cBowl];
                     const sc = {...d.score};
                     sc.b++;
                     if(resObj.v === "OUT") sc.w++; else sc.r += resObj.v;
+                    
                     update(ref(db, `rooms/${room}/turn`), {
                         result: (resObj.v==="OUT"?"OUT!":resObj.v+" RUNS"), 
                         desc: resObj.t
                     });
                     update(ref(db, `rooms/${room}/score`), sc);
                 }
+
+                // Force Button
                 document.getElementById('force-btn').onclick = () => {
                     if(d.state === "NAMING") update(ref(db, `rooms/${room}`), { state: "TOSS", toss:{step:"CALL"}, teams:{A:{isNamed:true, name:"Red"}, B:{isNamed:true, name:"Blue"}} });
                     if(d.state === "TOSS") update(ref(db, `rooms/${room}`), { state: "SELECTION", batTeam:"A", bowlTeam:"B" });
@@ -592,6 +653,7 @@
             }
         };
 
+        // Expose
         window.app = app;
     </script>
 </body>
