@@ -3,79 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cricket Duel: Final</title>
+    <title>Cricket Duel: Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg:#121212; --text:#fff; --gold:#ffcc00; --red:#e74c3c; --blue:#3498db; --green:#27ae60; --dark:#1a1a1a; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        /* --- LAYOUT --- */
+        /* LAYOUT */
         body { 
             background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; 
             height: 100dvh; width: 100vw; overflow: hidden; display: flex; flex-direction: column;
         }
 
+        /* HEADER */
         .app-header {
-            height: 55px; background: #111; border-bottom: 2px solid var(--gold);
+            height: 50px; background: #111; border-bottom: 2px solid var(--gold);
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 10px; flex-shrink: 0; z-index: 200;
+            padding: 0 10px; flex-shrink: 0; z-index: 100;
         }
 
-        .app-content {
-            flex: 1; position: relative; overflow: hidden; width: 100%; display: flex; flex-direction: column;
-        }
-
+        /* MAIN CONTENT */
+        .app-content { flex: 1; position: relative; overflow: hidden; width: 100%; display: flex; flex-direction: column; }
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; }
         .screen.active { display: flex; }
         .scroll-y { flex: 1; overflow-y: auto; padding: 10px; }
 
+        /* FOOTER */
         .app-footer {
             background: #181818; border-top: 1px solid var(--gold);
-            padding: 10px; flex-shrink: 0; z-index: 200;
+            padding: 10px; flex-shrink: 0; z-index: 100;
             display: flex; flex-direction: column; gap: 8px;
             padding-bottom: env(safe-area-inset-bottom, 15px);
         }
-
         .hidden { display: none !important; }
 
-        /* --- UI ELEMENTS --- */
-        .btn { border: none; padding: 12px; font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; text-transform: uppercase; border-radius: 6px; width: 100%; }
-        .btn:active { transform: scale(0.95); }
+        /* UI ELEMENTS */
+        .btn { border: none; padding: 12px; font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; text-transform: uppercase; border-radius: 4px; width: 100%; }
+        .btn:active { transform: scale(0.96); }
         .btn-gold { background: var(--gold); color: black; font-weight: bold; }
         .btn-red { background: var(--red); color: white; }
         .btn-blue { background: var(--blue); color: white; }
         .btn-outline { background: transparent; border: 1px solid #555; color: #ccc; }
-        
-        .btn-xs { 
-            padding: 5px 10px; font-size: 0.9rem; border-radius: 4px; 
-            border: 1px solid #555; background: #222; color: #ccc; cursor: pointer;
-        }
-        
-        .force-btn {
-            background: var(--red); color: white; border: none; font-weight: bold;
-            padding: 5px 10px; border-radius: 4px; font-family: 'Teko'; cursor: pointer;
-        }
-
+        .btn-xs { padding: 4px 10px; font-size: 0.9rem; border-radius: 4px; border: 1px solid #555; background: #222; color: #ccc; cursor: pointer; }
+        .force-btn { background: var(--red); color: white; border: none; font-weight: bold; padding: 5px 10px; border-radius: 4px; font-family: 'Teko'; cursor: pointer; }
         .input-box { background: #222; border: 1px solid #555; color: white; padding: 12px; width: 100%; text-align: center; font-size: 1.2rem; border-radius: 6px; outline: none; }
 
-        /* --- LOBBY --- */
+        /* --- LOBBY CARD STYLE (MATCHING SCREENSHOT) --- */
         .lobby-cols { display: flex; flex: 1; overflow: hidden; gap: 5px; padding: 5px; }
         .col { flex: 1; display: flex; flex-direction: column; border: 1px solid #333; background: rgba(255,255,255,0.02); border-radius: 5px; overflow: hidden; }
         .col-head { text-align: center; padding: 5px; font-family: 'Teko'; font-size: 1.2rem; background: rgba(0,0,0,0.5); flex-shrink: 0; }
         .col-list { flex: 1; overflow-y: auto; padding: 5px; }
 
-        .p-row { 
-            background: #252525; padding: 8px 5px; margin-bottom: 5px; border-radius: 4px; 
-            font-size: 0.9rem; border-left: 3px solid #555; display: flex; flex-direction: column; gap: 4px;
+        .p-card { 
+            background: #202020; margin-bottom: 6px; border-radius: 4px; 
+            border-left: 4px solid #555; overflow: hidden; display: flex; flex-direction: column;
         }
-        .p-name-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .p-actions { display: flex; gap: 5px; margin-top: 2px; }
-        
+        .p-info { 
+            padding: 8px 8px 4px 8px; display: flex; align-items: center; justify-content: space-between;
+            font-weight: bold; font-size: 0.9rem;
+        }
+        /* Buttons Area */
+        .p-actions { 
+            display: flex; gap: 5px; padding: 0 5px 5px 5px; 
+        }
+        /* The specific dark buttons from screenshot */
+        .act-btn { 
+            flex: 1; background: #333; border: 1px solid #444; color: #ccc; 
+            font-size: 0.75rem; padding: 4px 0; text-align: center; 
+            cursor: pointer; border-radius: 3px; font-family: 'Rajdhani', sans-serif; font-weight: bold;
+        }
+        .act-btn:active { background: #555; color: white; }
+
         .red-brd { border-color: var(--red); }
         .blue-brd { border-color: var(--blue); }
-        .c-badge { background: var(--gold); color: black; font-weight: bold; padding: 1px 6px; border-radius: 3px; font-size: 0.75rem; margin-left: 5px; }
+        /* The Yellow C Badge */
+        .c-badge { 
+            background: var(--gold); color: black; font-weight: bold; 
+            padding: 1px 5px; border-radius: 2px; font-size: 0.8rem; font-family: 'Teko';
+        }
 
-        /* --- GAME --- */
+        /* --- GAMEPLAY --- */
         .scoreboard { background: #151515; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; height: 60px; flex-shrink: 0; }
         .pitch { flex: 1; width: 100%; background: var(--green); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.1) 20px); }
         .card-slot { width: 90px; height: 130px; border: 2px dashed rgba(255,255,255,0.4); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 10px; background: rgba(0,0,0,0.1); }
@@ -212,7 +219,7 @@
     <div id="rules-ov" class="overlay hidden" onclick="this.classList.add('hidden')">
         <div class="modal-box">
             <h2 style="color:var(--gold); text-align:center; margin-bottom:10px;">RULES</h2>
-            <p style="text-align:center; color:#ccc;">Batter plays shot, Bowler plays ball. High score wins.</p>
+            <p style="text-align:center; color:#ccc;">High score wins. Captains pick players.</p>
             <p style="text-align:center; margin-top:15px; color:#666;">Tap to Close</p>
         </div>
     </div>
@@ -259,8 +266,16 @@
             init();
         };
 
-        window.swap = (p, t) => update(ref(db, `rooms/${roomCode}/players/${p}/team`), t==='A'?'B':'A');
-        window.setCap = (p, t) => update(ref(db, `rooms/${roomCode}/teams/${t}/captain`), p);
+        // BUTTON ACTIONS
+        window.swap = (p, t) => { 
+            // Ensure we have current room code
+            const r = sessionStorage.getItem('cd_room');
+            if(r) update(ref(db, `rooms/${r}/players/${p}/team`), t==='A'?'B':'A');
+        };
+        window.setCap = (p, t) => {
+            const r = sessionStorage.getItem('cd_room');
+            if(r) update(ref(db, `rooms/${r}/teams/${t}/captain`), p);
+        };
         
         window.shuffleTeams = () => {
             const players = Object.keys(localState.players);
@@ -392,9 +407,18 @@
             $('list-red').innerHTML = ''; $('list-blue').innerHTML = '';
             Object.keys(data.players).forEach(p => {
                 const tm = data.players[p].team; const isCap = data.teams[tm].captain === p;
-                const div = document.createElement('div'); div.className = `p-row ${tm==='A'?'red-brd':'blue-brd'}`;
-                let html = `<div class="p-name-row"><span>${p} ${isCap?'<span class="c-badge">C</span>':''}</span></div>`;
-                if(isHost) html += `<div class="p-controls"><div class="action-btn" onclick="swap('${p}','${tm}')">SWAP</div><div class="action-btn" onclick="setCap('${p}','${tm}')">CAP</div></div>`;
+                const div = document.createElement('div'); div.className = `p-card ${tm==='A'?'red-brd':'blue-brd'}`;
+                
+                // Info Row
+                let html = `<div class="p-info"><span>${p}</span> ${isCap?'<span class="c-badge">C</span>':''}</div>`;
+                
+                // Actions Row (Host Only)
+                if(isHost) {
+                    html += `<div class="p-actions">
+                        <div class="act-btn" onclick="swap('${p}','${tm}')">SWAP</div>
+                        <div class="act-btn" onclick="setCap('${p}','${tm}')">CAP</div>
+                    </div>`;
+                }
                 div.innerHTML = html;
                 (tm==='A'?$('list-red'):$('list-blue')).appendChild(div);
             });
