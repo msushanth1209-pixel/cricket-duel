@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cricket Duel</title>
     <style>
-        /* --- 1. VISUAL THEME --- */
+        /* --- THEME --- */
         :root {
             --pitch-green: #27ae60;
             --pitch-light: #2ecc71;
@@ -29,7 +29,7 @@
             user-select: none;
         }
 
-        /* --- 2. HEADER --- */
+        /* --- HEADER --- */
         header {
             height: 60px;
             background: rgba(0,0,0,0.6);
@@ -43,7 +43,7 @@
             z-index: 20;
         }
 
-        /* --- 3. MAIN --- */
+        /* --- MAIN --- */
         main {
             flex: 1;
             overflow-y: auto;
@@ -56,7 +56,7 @@
             z-index: 1;
         }
 
-        /* --- 4. FOOTER --- */
+        /* --- FOOTER --- */
         footer {
             height: 110px;
             background: rgba(0,0,0,0.9);
@@ -91,10 +91,7 @@
         .btn-danger { background: linear-gradient(135deg, var(--danger-red), #c0392b); box-shadow: none; }
         .btn-blue { background: linear-gradient(135deg, var(--mi-blue), #2980b9); box-shadow: none; }
         .btn-icon { padding: 8px 12px; font-size: 1.2rem; background: rgba(255,255,255,0.1); margin-left: 5px; }
-        
-        .btn-mini { 
-            padding: 6px 10px; font-size: 0.8rem; margin-left: 6px; border-radius: 6px; box-shadow: none; cursor: pointer;
-        }
+        .btn-mini { padding: 6px 10px; font-size: 0.8rem; margin-left: 6px; border-radius: 6px; box-shadow: none; cursor: pointer; }
 
         /* CARDS */
         .card-btn {
@@ -290,8 +287,7 @@
     <div id="result-overlay" class="overlay-modal">
         <div id="res-text" style="font-size:4rem; font-weight:900; color:var(--csk-yellow); margin-bottom:10px;">OUT!</div>
         <div id="res-desc" style="font-size:1.2rem; color:#bdc3c7; margin-bottom:30px;">Clean Bowled</div>
-        <div id="host-next-btn">
-             </div>
+        <div id="host-next-btn"></div>
     </div>
 
     <div id="rules-overlay" class="overlay-modal" style="display:none; justify-content:flex-start; padding-top:60px;">
@@ -338,8 +334,6 @@
             "DEFENSE":{ "FAST": {v:0, t:"Solid"}, "YORKER": {v:0, t:"Digs it out"}, "BOUNCER": {v:0, t:"Ducks"}, "SPIN": {v:0, t:"Blocked"}, "FULL TOSS": {v:"OUT", t:"Napping!"} }
         };
         const BOWL_HAND = ["SPIN", "FAST", "YORKER", "BOUNCER", "FULL TOSS"];
-        
-        // DECK MODE: Balanced Batting Deck
         const START_DECK = ["6 RUNS", "4 RUNS", "4 RUNS", "2 RUNS", "2 RUNS", "2 RUNS", "1 RUN", "1 RUN", "1 RUN", "DEFENSE", "DEFENSE", "DEFENSE"];
 
         let room = "";
@@ -463,7 +457,7 @@
                     const foot = document.getElementById('foot-hand');
                     foot.innerHTML = "";
 
-                    // DECK MODE: Render buttons based on DB Hand
+                    // DECK RENDER
                     if(role === "bat") {
                         const myHand = d.players[me].hand || [];
                         const counts = {};
@@ -477,7 +471,7 @@
                         foot.innerHTML = "<p style='width:100%; text-align:center; color:#ccc'>Spectating...</p>";
                     }
 
-                    // SLOTS
+                    // PRIVACY SLOTS
                     const sMe = document.getElementById('slot-me');
                     const sOpp = document.getElementById('slot-opp');
                     sMe.className="slot"; sOpp.className="slot";
@@ -496,13 +490,12 @@
                         if(turn.cBat && turn.cBowl && !turn.result) { sMe.innerText = "Ready"; sOpp.innerText = "Ready"; }
                     }
 
-                    // RESULT REVEAL & OVERLAY UI
+                    // RESULT
                     if(turn.result) {
                         document.getElementById('result-overlay').style.display = "flex";
                         document.getElementById('res-text').innerText = turn.result;
                         document.getElementById('res-desc').innerText = turn.desc;
                         
-                        // NEXT BALL BUTTON (Only for Host logic triggers, but visible logic for UX)
                         const nbDiv = document.getElementById('host-next-btn');
                         if(isHost) {
                             nbDiv.innerHTML = `<button class="btn" onclick="app.closeOverlay()">NEXT BALL</button>`;
@@ -527,7 +520,7 @@
                 if(localData.teams.A.captain === pName) set(ref(db, `rooms/${room}/teams/A/captain`), null);
                 if(localData.teams.B.captain === pName) set(ref(db, `rooms/${room}/teams/B/captain`), null);
             },
-            hostShuffle: () => { /* Shuffle logic retained */ },
+            hostShuffle: () => { /* Logic hidden for brevity */ },
             hostStart: () => {
                 if(!localData.teams.A.captain || !localData.teams.B.captain) return alert("Assign captains!");
                 update(ref(db, `rooms/${room}`), {state:"NAMING"});
@@ -546,28 +539,28 @@
                 const isBat = localData.batTeam === myTeam;
                 update(ref(db, `rooms/${room}/turn`), { [isBat?"cBat":"cBowl"]: c });
             },
+            
+            // --- SMART NEXT BALL LOGIC ---
             closeOverlay: () => {
-                if(isHost) {
-                     // ATOMIC UPDATE: Clear turn data AND set State at same time to avoid race conditions
-                     const updates = {};
-                     updates[`rooms/${room}/state`] = "SELECTION";
-                     updates[`rooms/${room}/turn/cBat`] = null;
-                     updates[`rooms/${room}/turn/cBowl`] = null;
-                     updates[`rooms/${room}/turn/result`] = null;
-                     updates[`rooms/${room}/turn/desc`] = null;
-                     updates[`rooms/${room}/turn/striker`] = null;
-                     updates[`rooms/${room}/turn/bowler`] = null;
-                     update(ref(db), updates);
+                if(!isHost) return;
+                const turn = localData.turn;
+                const balls = localData.score.b;
+
+                // 1. End of Over (Every 6 balls) OR Wicket -> Go to Selection
+                if ( (balls > 0 && balls % 6 === 0) || turn.result === "OUT!" ) {
+                    update(ref(db, `rooms/${room}`), { state:"SELECTION" });
+                    update(ref(db, `rooms/${room}/turn`), { cBat:null, cBowl:null, result:null, desc:null, striker:null, bowler:null });
+                } 
+                // 2. Normal Run -> Stay in Game, Just Clear Cards
+                else {
+                    update(ref(db, `rooms/${room}/turn`), { cBat:null, cBowl:null, result:null, desc:null });
                 }
             },
 
-            // HOST LOGIC
+            // HOST LOOP
             hostLoop: (d) => {
                 if(!d) return;
-                // Naming -> Toss
                 if(d.state==="NAMING" && d.teams.A.isNamed && d.teams.B.isNamed) update(ref(db, `rooms/${room}`), {state:"TOSS", toss:{step:"CALL"}});
-                
-                // Toss
                 if(d.state==="TOSS" && d.toss.step==="SPIN" && !d.toss.winner) {
                     setTimeout(() => {
                         const res = Math.random()>0.5?"HEADS":"TAILS";
@@ -575,16 +568,15 @@
                     }, 2000);
                 }
                 
-                // Selection -> Game
-                if(d.state==="SELECTION" && d.turn?.striker && d.turn?.bowler) update(ref(db, `rooms/${room}`), {state:"GAME"});
+                if(d.state==="SELECTION" && d.turn?.striker && d.turn?.bowler) {
+                    update(ref(db, `rooms/${room}`), {state:"GAME"});
+                }
                 
-                // Game Result
                 if(d.state==="GAME" && d.turn?.cBat && d.turn?.cBowl && !d.turn.result) {
                     const r = MATRIX[d.turn.cBat][d.turn.cBowl];
                     const s = {...d.score}; s.b++;
                     if(r.v==="OUT") s.w++; else s.r+=r.v;
                     
-                    // DECK LOGIC
                     const striker = d.turn.striker;
                     const usedCard = d.turn.cBat;
                     let currentHand = d.players[striker].hand || [];
