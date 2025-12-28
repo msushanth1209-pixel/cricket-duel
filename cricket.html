@@ -3,107 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cricket Duel: Final Fix</title>
+    <title>Cricket Duel: Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg:#121212; --text:#fff; --gold:#ffd700; --red:#d32f2f; --blue:#1976d2; --green:#2e7d32; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
         
-        /* TYPOGRAPHY */
-        h1, h2, .font-teko { font-family: 'Teko', sans-serif; text-transform: uppercase; letter-spacing: 1px; line-height: 1; }
-        
-        /* SCREENS */
+        /* UI HELPERS */
+        .hidden { display: none !important; }
         .screen { display: none; width: 100%; max-width: 500px; height: 100%; flex-direction: column; position: relative; z-index: 10; }
         .screen.active { display: flex; }
+        .font-teko { font-family: 'Teko', sans-serif; text-transform: uppercase; }
         
-        /* UI ELEMENTS */
-        .btn { border: none; padding: 12px; font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; text-transform: uppercase; margin: 5px; border-radius: 4px; width: 90%; max-width: 300px; align-self: center; }
-        .btn-gold { background: var(--gold); color: black; }
-        .btn-outline { background: transparent; border: 2px solid #444; color: #aaa; }
-        .btn:disabled { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+        /* COMPONENTS */
+        .btn { border: none; padding: 12px; font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; text-transform: uppercase; margin: 5px; border-radius: 4px; width: 90%; align-self: center; transition: 0.1s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-gold { background: var(--gold); color: black; font-weight: bold; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-outline { background: transparent; border: 1px solid #555; color: #aaa; }
         
-        .input-box { background: #222; border: 1px solid #444; color: white; padding: 10px; width: 90%; text-align: center; font-size: 1.2rem; margin: 10px 0; }
+        .input-box { background: #222; border: 1px solid #444; color: white; padding: 12px; width: 90%; text-align: center; font-size: 1.2rem; margin: 10px 0; border-radius: 5px; }
         
-        /* HEADER BAR */
         .top-bar { width: 100%; background: #1a1a1a; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold); }
         
-        /* PLAYER LISTS */
-        .team-box { flex: 1; padding: 10px; overflow-y: auto; }
-        .p-row { padding: 8px; margin: 4px 0; background: #222; border-left: 4px solid #555; cursor: pointer; display: flex; justify-content: space-between; }
-        .border-red { border-color: var(--red); }
-        .border-blue { border-color: var(--blue); }
-        
-        /* GAMEPLAY */
-        .pitch { flex: 1; width: 100%; background: var(--green); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .card-slot { width: 100px; height: 140px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 10px; background: rgba(0,0,0,0.1); }
-        .card { width: 100px; height: 140px; background: white; color: black; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 2rem; border: 4px solid #333; animation: pop 0.3s; }
-        
+        /* LOBBY */
+        .lobby-cols { display: flex; height: 100%; overflow: hidden; width: 100%; }
+        .team-col { flex: 1; padding: 5px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .p-card { background: #222; padding: 8px; border-left: 4px solid #555; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+        .p-card.red { border-color: var(--red); }
+        .p-card.blue { border-color: var(--blue); }
+        .action-icon { cursor: pointer; padding: 0 5px; font-size: 1.2rem; }
+
+        /* COIN ANIMATION */
+        .coin-container { perspective: 1000px; margin: 20px; }
+        .coin { width: 150px; height: 150px; position: relative; transform-style: preserve-3d; transition: transform 3s ease-out; }
+        .coin-face { position: absolute; width: 100%; height: 100%; border-radius: 50%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 2rem; border: 5px solid #b8860b; box-shadow: 0 0 20px rgba(255,215,0,0.5); background: radial-gradient(#ffd700, #b8860b); color: #000; }
+        .coin-back { transform: rotateX(180deg); background: radial-gradient(#c0c0c0, #808080); border-color: #808080; }
+        .spinning { animation: spin 0.5s infinite linear; }
+        @keyframes spin { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
+
+        /* GAME */
+        .pitch { flex: 1; width: 100%; background: var(--green); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.1) 20px); }
+        .slot { width: 100px; height: 140px; border: 3px dashed rgba(255,255,255,0.4); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 15px; background: rgba(0,0,0,0.1); }
+        .card { width: 100px; height: 140px; background: white; color: black; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 1.8rem; border: 4px solid #333; animation: pop 0.3s; }
+        .card-bat { border-color: var(--blue); background: linear-gradient(135deg, #fff, #e3f2fd); }
+        .card-bowl { border-color: var(--red); background: linear-gradient(135deg, #fff, #ffebee); }
         @keyframes pop { from{transform:scale(0);} to{transform:scale(1);} }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <div class="font-teko" style="font-size:1.5rem;" id="main-status">LOBBY</div>
-        <div class="font-teko" style="font-size:1.5rem; color:var(--gold);" id="main-timer">--</div>
+        <div class="font-teko" style="font-size:1.4rem; color:var(--gold);" id="main-status">LOBBY</div>
+        <button class="btn-outline" style="padding:5px 10px; width:auto;" onclick="exitGame()">EXIT</button>
     </div>
 
     <div id="s-home" class="screen active" style="justify-content:center;">
         <h1 style="font-size:4rem; color:var(--gold); text-align:center;">CRICKET DUEL</h1>
-        <input type="text" id="my-name" class="input-box" placeholder="YOUR NAME" maxlength="12">
-        <button class="btn btn-gold" onclick="hostGame()">HOST MATCH</button>
+        <input type="text" id="my-name" class="input-box" placeholder="ENTER NAME" maxlength="10">
+        <button class="btn btn-gold" onclick="createRoom()">HOST GAME</button>
         <div style="display:flex; justify-content:center; width:90%; gap:5px;">
             <input type="text" id="join-code" class="input-box" placeholder="ROOM CODE" style="margin:0;">
-            <button class="btn btn-outline" style="margin:0; width:auto;" onclick="joinGame()">JOIN</button>
+            <button class="btn btn-outline" style="margin:0; width:auto;" onclick="joinRoom()">JOIN</button>
         </div>
     </div>
 
     <div id="s-lobby" class="screen">
-        <div style="text-align:center; padding:10px;">ROOM CODE: <span id="disp-code" style="color:var(--gold); font-size:2rem;">...</span></div>
-        <div style="display:flex; height:100%;">
-            <div class="team-box" id="list-red"></div>
-            <div class="team-box" id="list-blue"></div>
+        <div style="text-align:center; padding:5px; background:#111;">CODE: <span id="disp-code" style="color:var(--gold); font-size:1.5rem;">...</span></div>
+        <div class="lobby-cols">
+            <div class="team-col" style="border-right:1px solid #333;">
+                <div style="text-align:center; color:var(--red); font-family:'Teko'; font-size:1.5rem;">RED TEAM</div>
+                <div id="list-red"></div>
+            </div>
+            <div class="team-col">
+                <div style="text-align:center; color:var(--blue); font-family:'Teko'; font-size:1.5rem;">BLUE TEAM</div>
+                <div id="list-blue"></div>
+            </div>
         </div>
-        <div id="host-controls" style="padding:20px; display:none; flex-direction:column;">
-            <p style="text-align:center; color:#777; font-size:0.9rem;">Tap names to swap teams</p>
-            <button class="btn btn-gold" onclick="startGame()">START GAME</button>
+        <div id="host-controls" class="hidden" style="padding:10px; background:#111; border-top:1px solid var(--gold);">
+            <div style="display:flex; justify-content:space-around; margin-bottom:5px;">
+                <button class="btn-outline" style="width:auto; font-size:0.9rem;" onclick="randomizeTeams()">SHUFFLE</button>
+                <button class="btn-outline" style="width:auto; font-size:0.9rem;" onclick="randomizeCaptains()">AUTO CAP</button>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <select id="overs-select" class="input-box" style="margin:0; width:30%; padding:5px;"><option value="1">1 OVR</option><option value="2">2 OVR</option></select>
+                <button class="btn btn-gold" style="margin:0; width:70%;" onclick="attemptStart()">START MATCH</button>
+            </div>
         </div>
-        <div id="msg-wait" style="text-align:center; padding:20px; color:#777;">Waiting for Host...</div>
-    </div>
-
-    <div id="s-voting" class="screen">
-        <h2 style="text-align:center; margin-top:20px;">VOTE CAPTAIN</h2>
-        <div id="vote-container" style="padding:20px; overflow-y:auto;"></div>
+        <div id="wait-msg" style="text-align:center; padding:20px; color:#555;">Waiting for Host...</div>
     </div>
 
     <div id="s-naming" class="screen" style="justify-content:center; align-items:center;">
-        <h2>NAME YOUR TEAM</h2>
-        <input type="text" id="team-name-in" class="input-box" placeholder="TEAM NAME">
-        <button class="btn btn-gold" onclick="submitName()">SUBMIT</button>
-        <p id="naming-wait" style="display:none; color:#777;">Waiting for Captains...</p>
+        <h2 id="naming-timer" style="color:var(--gold); font-size:2rem;">30</h2>
+        <div id="naming-cap" class="hidden" style="width:100%; text-align:center;">
+            <p>NAME YOUR TEAM</p>
+            <input type="text" id="team-name-in" class="input-box" placeholder="TEAM NAME">
+            <button class="btn btn-gold" onclick="submitName()">SUBMIT</button>
+        </div>
+        <p id="naming-wait" style="color:#777;">Waiting for Captains...</p>
     </div>
 
     <div id="s-toss" class="screen" style="justify-content:center; align-items:center;">
-        <h1 style="font-size:3rem;" id="toss-res">TOSS...</h1>
-        <div id="toss-btns" style="display:none;">
+        <h1 style="font-size:3rem;">TOSS</h1>
+        
+        <div class="coin-container">
+            <div id="the-coin" class="coin">
+                <div class="coin-face">HEADS</div>
+                <div class="coin-face coin-back">TAILS</div>
+            </div>
+        </div>
+
+        <h2 id="toss-status" style="margin-top:20px;">WAITING...</h2>
+
+        <div id="toss-call-ui" class="hidden" style="width:100%; text-align:center;">
+            <p style="color:var(--red);">RED CAPTAIN CALL:</p>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button class="btn btn-outline" style="width:auto;" onclick="callToss('HEADS')">HEADS</button>
+                <button class="btn btn-outline" style="width:auto;" onclick="callToss('TAILS')">TAILS</button>
+            </div>
+        </div>
+
+        <div id="toss-decide-ui" class="hidden" style="width:100%; text-align:center;">
             <p style="color:var(--gold);">YOU WON! CHOOSE:</p>
-            <button class="btn btn-blue" onclick="pickToss('BAT')">BAT</button>
-            <button class="btn btn-red" onclick="pickToss('BOWL')">BOWL</button>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button class="btn btn-blue" style="width:auto;" onclick="decideBatBowl('BAT')">BAT</button>
+                <button class="btn btn-red" style="width:auto;" onclick="decideBatBowl('BOWL')">BOWL</button>
+            </div>
         </div>
     </div>
 
+    <div id="s-selection" class="screen">
+        <div style="background:#111; padding:10px; text-align:center;">
+            <div id="sel-title" style="color:var(--gold); font-size:1.5rem;">SELECT PLAYER</div>
+        </div>
+        <div id="sel-list" style="padding:10px; display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+
     <div id="s-game" class="screen">
-        <div class="top-bar" style="font-size:1.2rem;">
-            <span id="score-txt">0/0</span>
-            <span id="overs-txt">0.0</span>
+        <div style="display:flex; justify-content:space-between; padding:10px; background:#111; border-bottom:1px solid var(--gold);">
+            <div><span id="bat-tm" style="color:var(--blue)">BAT</span> <span id="score-disp" style="font-size:1.5rem; color:white;">0/0</span></div>
+            <div><span id="bowl-tm" style="color:var(--red)">BOWL</span> <span id="overs-disp" style="font-size:1.5rem; color:white;">0.0</span></div>
         </div>
         <div class="pitch">
-            <div id="slot-opp" class="card-slot">OPP</div>
-            <div id="slot-me" class="card-slot">ME</div>
-            <div id="res-popup" style="position:absolute; font-size:4rem; font-family:'Teko'; display:none; text-shadow:0 0 10px black;">OUT!</div>
+            <div id="slot-opp" class="slot" style="color:#555;">OPPONENT</div>
+            <div style="height:2px; width:50%; background:#fff; opacity:0.2;"></div>
+            <div id="slot-me" class="slot" style="color:#555;">YOU</div>
+            <div id="res-pop" style="position:absolute; font-size:4rem; font-family:'Teko'; display:none; text-shadow:0 0 10px black; z-index:50;">OUT!</div>
         </div>
-        <div id="hand-box" style="padding:10px; display:flex; gap:10px; overflow-x:auto; background:#222;"></div>
+        <div id="hand-area" style="padding:10px; display:flex; gap:10px; overflow-x:auto; background:#111; min-height:100px;"></div>
+        <div id="spec-msg" style="text-align:center; padding:10px; color:#555; background:#111; display:none;">WATCHING MATCH</div>
+        <button id="force-btn" class="btn btn-outline hidden" style="position:absolute; bottom:120px; right:10px; width:auto; background:#000;" onclick="forceGame()">FORCE</button>
+    </div>
+
+    <div id="s-over" class="screen" style="justify-content:center; align-items:center;">
+        <h1 style="color:var(--gold);">MATCH ENDED</h1>
+        <h2 id="win-msg">TEAM WINS</h2>
+        <button class="btn btn-gold" onclick="location.reload()">MAIN MENU</button>
     </div>
 
     <script type="module">
@@ -124,48 +181,29 @@
         const db = getDatabase(app);
 
         // --- VARS ---
-        let myName = "", roomCode = "", isHost = false, myTeam = "A";
-        let stateData = {}; 
-        let timerInt = null;
+        let myName = sessionStorage.getItem('cd_name') || "", roomCode = sessionStorage.getItem('cd_room') || "", isHost = false, myTeam = "A";
+        let localState = null;
+        let lastBall = -1;
 
-        const CARDS = {
-            BAT: ['6 RUNS', '4 RUNS', '4 RUNS', '2 RUNS', '2 RUNS', '1 RUN', '1 RUN', 'DEFENSE'],
-            BOWL: ['YORKER', 'BOUNCER', 'FAST', 'FAST', 'SPIN', 'SPIN', 'FULL TOSS', 'FULL TOSS']
-        };
-        const MATRIX = {
-            '6 RUNS': { 'FULL TOSS':6, 'SPIN':6, 'FAST':-1, 'YORKER':-1, 'BOUNCER':0 },
-            '4 RUNS': { 'FULL TOSS':4, 'BOUNCER':4, 'FAST':-1, 'YORKER':-1, 'SPIN':0 },
-            '2 RUNS': { 'SPIN':2, 'FAST':2, 'BOUNCER':-1, 'YORKER':-1, 'FULL TOSS':0 },
-            '1 RUN':  { 'FAST':1, 'YORKER':1, 'SPIN':-1, 'BOUNCER':-1, 'FULL TOSS':0 },
-            'DEFENSE':{ 'FAST':0, 'YORKER':0, 'FULL TOSS':-1, 'SPIN':0, 'BOUNCER':0 }
-        };
-
-        // --- HELPERS ---
         const $ = id => document.getElementById(id);
         const show = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
+        const CARDS = { BAT: ['6 RUNS','4 RUNS','4 RUNS','2 RUNS','2 RUNS','1 RUN','1 RUN','DEFENSE'], BOWL: ['YORKER','BOUNCER','FAST','FAST','SPIN','SPIN','FULL TOSS','FULL TOSS'] };
+        const MATRIX = { '6 RUNS':{'FULL TOSS':6,'SPIN':6,'FAST':-1,'YORKER':-1,'BOUNCER':0}, '4 RUNS':{'FULL TOSS':4,'BOUNCER':4,'FAST':-1,'YORKER':-1,'SPIN':0}, '2 RUNS':{'SPIN':2,'FAST':2,'BOUNCER':-1,'YORKER':-1,'FULL TOSS':0}, '1 RUN':{'FAST':1,'YORKER':1,'SPIN':-1,'BOUNCER':-1,'FULL TOSS':0}, 'DEFENSE':{'FAST':0,'YORKER':0,'FULL TOSS':-1,'SPIN':0,'BOUNCER':0} };
 
         // --- SETUP ---
-        window.hostGame = async () => {
-            myName = $('my-name').value.toUpperCase();
-            if(!myName) return alert("Name required");
-            roomCode = Math.random().toString(36).substring(2,6).toUpperCase();
-            isHost = true;
-            await set(ref(db, 'rooms/'+roomCode), {
-                state: 'LOBBY',
-                players: { [myName]: { team:'A', hand:[] } },
-                teams: { A:{name:'RED'}, B:{name:'BLUE'} },
-                timer: 0
-            });
+        window.createRoom = async () => {
+            myName = $('my-name').value.toUpperCase(); if(!myName) return alert("Name?");
+            roomCode = Math.random().toString(36).substring(2,6).toUpperCase(); isHost = true;
+            sessionStorage.setItem('cd_name', myName); sessionStorage.setItem('cd_room', roomCode);
+            await set(ref(db, 'rooms/'+roomCode), { state: 'LOBBY', players: {[myName]:{team:'A',hand:[]}}, teams:{A:{name:'RED TEAM'},B:{name:'BLUE TEAM'}}, score:{r:0,w:0,b:0} });
             init();
         };
-
-        window.joinGame = async () => {
-            myName = $('my-name').value.toUpperCase();
-            roomCode = $('join-code').value.toUpperCase();
-            if(!myName || !roomCode) return alert("Info required");
+        window.joinRoom = async () => {
+            myName = $('my-name').value.toUpperCase(); roomCode = $('join-code').value.toUpperCase(); if(!myName||!roomCode) return alert("Info?");
+            if(!(await get(ref(db, 'rooms/'+roomCode))).exists()) return alert("No Room");
+            sessionStorage.setItem('cd_name', myName); sessionStorage.setItem('cd_room', roomCode);
             const snap = await get(ref(db, 'rooms/'+roomCode));
-            if(!snap.exists()) return alert("Room not found");
-            const pCount = Object.keys(snap.val().players || {}).length;
+            const pCount = Object.keys(snap.val().players||{}).length;
             await update(ref(db, `rooms/${roomCode}/players/${myName}`), { team: pCount%2===0?'A':'B' });
             init();
         };
@@ -173,225 +211,211 @@
         function init() {
             $('disp-code').innerText = roomCode;
             onValue(ref(db, 'rooms/'+roomCode), snap => {
-                stateData = snap.val();
-                if(stateData) render(stateData);
+                localState = snap.val();
+                if(localState) render(localState); else location.reload();
             });
-            if(isHost) setInterval(hostLoop, 1000); // THE ACTIVE HOST LOOP
+            if(isHost) setInterval(hostLoop, 1000);
         }
 
-        // --- THE ACTIVE HOST LOOP (THE FIX) ---
+        // --- HOST LOOP (SERVER BRAIN) ---
         function hostLoop() {
-            if(!stateData || !stateData.timer) return;
-            const now = Math.floor(Date.now()/1000);
-            const left = stateData.timer - now;
+            if(!localState || !localState.timerEnd) return;
+            const left = localState.timerEnd - Math.floor(Date.now()/1000);
             
-            // Auto-advance if time is up
-            if(left <= 0) {
-                if(stateData.state === 'VOTING') finalizeVoting();
-                else if(stateData.state === 'NAMING') forceNext('TOSS');
-                else if(stateData.state === 'TOSS') {
-                    // Random pick if stuck
-                    if(!stateData.tossWinner) update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B');
-                    else forceNext('GAME'); // Default to Bat if timed out
-                }
-                else if(stateData.state === 'GAME') resolveTurn(); 
+            // Auto-advance Naming
+            if(localState.state === 'NAMING' && left <= 0) {
+                update(ref(db, `rooms/${roomCode}/state`), 'TOSS'); // Force to Toss
             }
+            // Auto-advance Selection
+            if(localState.state === 'SELECTION' && left <= 0) window.forceSel();
+            // Auto-advance Game
+            if(localState.state === 'GAME' && left <= 0) window.forceGame();
         }
 
-        // --- RENDER & LOGIC ---
         function render(data) {
-            // Update Timer UI
-            const left = Math.max(0, data.timer - Math.floor(Date.now()/1000));
-            $('main-timer').innerText = left > 0 ? left : '--';
             $('main-status').innerText = data.state;
-
-            // Update My Team
             if(data.players && data.players[myName]) myTeam = data.players[myName].team;
-
-            // Render Screens
+            
             if(data.state === 'LOBBY') renderLobby(data);
-            else if(data.state === 'VOTING') renderVoting(data);
             else if(data.state === 'NAMING') renderNaming(data);
             else if(data.state === 'TOSS') renderToss(data);
+            else if(data.state === 'SELECTION') renderSel(data);
             else if(data.state === 'GAME') renderGame(data);
+            else if(data.state === 'OVER') { show('s-over'); $('win-msg').innerText = (data.winner==='A'?data.teams.A.name:data.teams.B.name)+" WINS!"; }
         }
 
-        // --- LOBBY ---
+        // 1. LOBBY
         function renderLobby(data) {
             show('s-lobby');
             $('list-red').innerHTML = ''; $('list-blue').innerHTML = '';
-            
-            Object.keys(data.players || {}).forEach(p => {
-                const tm = data.players[p].team;
-                const div = document.createElement('div');
-                div.className = `p-row ${tm==='A'?'border-red':'border-blue'}`;
-                div.innerText = p;
-                if(isHost) div.onclick = () => update(ref(db, `rooms/${roomCode}/players/${p}/team`), tm==='A'?'B':'A');
-                (tm==='A' ? $('list-red') : $('list-blue')).appendChild(div);
-            });
-
-            if(isHost) { $('host-controls').style.display = 'flex'; $('msg-wait').style.display = 'none'; }
-        }
-
-        window.startGame = () => update(ref(db, 'rooms/'+roomCode), { state: 'VOTING', timer: Math.floor(Date.now()/1000) + 30 });
-
-        // --- VOTING ---
-        function renderVoting(data) {
-            show('s-voting');
-            const box = $('vote-container');
-            box.innerHTML = '';
-            
             Object.keys(data.players).forEach(p => {
-                if(data.players[p].team === myTeam) {
-                    const btn = document.createElement('button');
-                    btn.className = "btn btn-outline";
-                    btn.innerText = `VOTE ${p}`;
-                    // Highlight if I voted
-                    if(data.votes && data.votes[myTeam] && data.votes[myTeam][myName] === p) {
-                        btn.className = "btn btn-gold";
-                    }
-                    btn.onclick = () => update(ref(db, `rooms/${roomCode}/votes/${myTeam}/${myName}`), p);
-                    box.appendChild(btn);
-                }
+                const tm = data.players[p].team;
+                const isCap = data.teams[tm].captain === p;
+                const div = document.createElement('div');
+                div.className = `p-card ${tm==='A'?'red':'blue'}`;
+                div.innerHTML = `<span>${p} ${isCap?'👑':''}</span>` + (isHost ? `<span class="action-icon" onclick="swap('${p}','${tm}')">⇄</span><span class="action-icon" onclick="setCap('${p}','${tm}')">👑</span>` : '');
+                (tm==='A'?$('list-red'):$('list-blue')).appendChild(div);
             });
+            if(isHost) { $('host-controls').classList.remove('hidden'); $('wait-msg').classList.add('hidden'); }
         }
+        window.swap = (p,t) => update(ref(db, `rooms/${roomCode}/players/${p}/team`), t==='A'?'B':'A');
+        window.setCap = (p,t) => update(ref(db, `rooms/${roomCode}/teams/${t}/captain`), p);
+        window.randomizeTeams = () => { /* Shuffle logic */ };
+        window.randomizeCaptains = () => { /* Random logic */ };
+        window.attemptStart = () => {
+            if(!localState.teams.A.captain || !localState.teams.B.captain) { if(!confirm("No Caps? Auto?")) return; /* Auto Cap logic */ }
+            update(ref(db, 'rooms/'+roomCode), { state: 'NAMING', overs: parseInt($('overs-select').value), timerEnd: Math.floor(Date.now()/1000)+30 });
+        };
 
-        function finalizeVoting() {
-            // Host counts votes
-            const getCap = (team) => {
-                // Simply pick first player if no votes, logic can be better but this is safe
-                const ks = Object.keys(stateData.players).filter(k=>stateData.players[k].team === team);
-                return ks[Math.floor(Math.random()*ks.length)];
-            };
-            update(ref(db, 'rooms/'+roomCode), {
-                state: 'NAMING',
-                'teams/A/captain': getCap('A'),
-                'teams/B/captain': getCap('B'),
-                timer: Math.floor(Date.now()/1000) + 30
-            });
-        }
-
-        // --- NAMING ---
+        // 2. NAMING (With Timer)
         function renderNaming(data) {
             show('s-naming');
-            const isCap = data.teams[myTeam].captain === myName;
+            const left = Math.max(0, data.timerEnd - Math.floor(Date.now()/1000));
+            $('naming-timer').innerText = left;
             
-            if(isCap) {
-                $('team-name-in').style.display = 'block';
-                $('naming-wait').style.display = 'none';
-            } else {
-                $('team-name-in').style.display = 'none';
-                $('naming-wait').style.display = 'block';
-            }
+            const isCap = data.teams[myTeam].captain === myName;
+            if(isCap && !data.teams[myTeam].isNamed) { $('naming-cap').classList.remove('hidden'); $('naming-wait').classList.add('hidden'); }
+            else { $('naming-cap').classList.add('hidden'); $('naming-wait').classList.remove('hidden'); }
 
-            // Check if both named (Instant Progress)
-            if(isHost && data.teams.A.named && data.teams.B.named) forceNext('TOSS');
+            if(isHost && (data.teams.A.isNamed && data.teams.B.isNamed)) update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
         }
-
         window.submitName = () => {
-            const n = $('team-name-in').value.toUpperCase();
-            if(!n) return;
-            update(ref(db, `rooms/${roomCode}/teams/${myTeam}`), { name: n, named: true });
+            const n = $('team-name-in').value.toUpperCase(); if(!n) return;
+            let up = {}; up[`teams/${myTeam}/name`]=n; up[`teams/${myTeam}/isNamed`]=true;
+            update(ref(db, 'rooms/'+roomCode), up);
         };
 
-        // --- TOSS ---
+        // 3. TOSS (Real Physics)
         function renderToss(data) {
             show('s-toss');
+            // Reset UI
+            $('toss-call-ui').classList.add('hidden'); $('toss-decide-ui').classList.add('hidden');
             
-            // Host logic: Pick winner if not exists
-            if(isHost && !data.tossWinner) {
-                update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B');
+            if(!data.tossStep) { // Start
+                if(isHost) update(ref(db, `rooms/${roomCode}/tossStep`), 'CALL');
             }
-
-            if(data.tossWinner) {
-                const winName = data.teams[data.tossWinner].name || "TEAM "+data.tossWinner;
-                $('toss-res').innerText = winName + " WON TOSS";
-                
-                const iAmCap = data.teams[myTeam].captain === myName;
-                if(iAmCap && myTeam === data.tossWinner) $('toss-btns').style.display = 'block';
-                else $('toss-btns').style.display = 'none';
+            else if(data.tossStep === 'CALL') {
+                $('toss-status').innerText = "RED CAPTAIN CALLING...";
+                if(data.teams.A.captain === myName) $('toss-call-ui').classList.remove('hidden');
             }
-        }
-
-        window.pickToss = (choice) => {
-            const winner = stateData.tossWinner;
-            const bat = choice==='BAT' ? winner : (winner==='A'?'B':'A');
-            const bowl = bat==='A'?'B':'A';
-            
-            update(ref(db, 'rooms/'+roomCode), {
-                state: 'GAME',
-                batTeam: bat,
-                bowlTeam: bowl,
-                score: {r:0, w:0, b:0},
-                timer: Math.floor(Date.now()/1000) + 9999 // Game loops handle their own timing
-            });
-        };
-
-        // --- GAME (Simplified for reliability) ---
-        function renderGame(data) {
-            show('s-game');
-            $('score-txt').innerText = `${data.score.r}/${data.score.w}`;
-            $('overs-txt').innerText = `${Math.floor(data.score.b/6)}.${data.score.b%6}`;
-
-            // Hand
-            const handBox = $('hand-box');
-            handBox.innerHTML = '';
-            
-            // Show Cards logic
-            const isBatting = data.batTeam === myTeam;
-            const myCards = CARDS[isBatting ? 'BAT' : 'BOWL'];
-            
-            myCards.forEach(c => {
-                const d = document.createElement('div');
-                d.className = "card"; 
-                d.style.fontSize = "1rem";
-                d.innerText = c;
-                d.onclick = () => playCard(c, isBatting);
-                handBox.appendChild(d);
-            });
-
-            // Show Slots
-            if(data.turn) {
-                if(data.turn.bat) $('slot-me').innerText = "LOCKED";
-                if(data.turn.res) {
-                    $('res-popup').style.display = 'block';
-                    $('res-popup').innerText = data.turn.res;
-                    setTimeout(()=>$('res-popup').style.display='none', 2000);
+            else if(data.tossStep === 'SPIN') {
+                $('toss-status').innerText = "SPINNING...";
+                $('the-coin').classList.add('spinning');
+                if(isHost && !data.spinDone) { // Host waits 3s then results
+                    setTimeout(() => {
+                        const res = Math.random()>0.5 ? 'HEADS' : 'TAILS';
+                        const win = (res === data.tossCall) ? 'A' : 'B'; // A called
+                        update(ref(db, `rooms/${roomCode}`), { tossStep: 'DECIDE', tossRes: res, tossWinner: win, spinDone: true });
+                    }, 3000);
                 }
             }
-        }
-
-        window.playCard = (c, isBat) => {
-            const key = isBat ? 'bat' : 'bowl';
-            update(ref(db, `rooms/${roomCode}/turn/${key}`), c);
-            if(isHost) setTimeout(checkTurn, 500);
-        };
-
-        function checkTurn() {
-            const t = stateData.turn;
-            if(t && t.bat && t.bowl && !t.res) {
-                // Calc result
-                const res = MATRIX[t.bat][t.bowl];
-                let txt = "";
-                let sc = stateData.score;
-                
-                if(res === -1) { sc.w++; txt="OUT!"; }
-                else { sc.r += res; txt=res+" RUNS"; }
-                sc.b++;
-
-                update(ref(db, `rooms/${roomCode}`), {
-                    score: sc,
-                    'turn/res': txt,
-                    'turn/bat': null, // Reset for next
-                    'turn/bowl': null
-                });
+            else if(data.tossStep === 'DECIDE') {
+                $('the-coin').classList.remove('spinning');
+                $('toss-status').innerText = `${data.tossRes}! ${data.teams[data.tossWinner].name} WON!`;
+                if(data.teams[data.tossWinner].captain === myName) $('toss-decide-ui').classList.remove('hidden');
             }
         }
+        window.callToss = (call) => update(ref(db, `rooms/${roomCode}`), { tossStep: 'SPIN', tossCall: call });
+        window.decideBatBowl = (c) => update(ref(db, 'rooms/'+roomCode), { state: 'SELECTION', batTeam: (c==='BAT'?localState.tossWinner:(localState.tossWinner==='A'?'B':'A')), bowlTeam: (c==='BAT'?(localState.tossWinner==='A'?'B':'A'):localState.tossWinner) });
 
-        function forceNext(st) {
-            update(ref(db, `rooms/${roomCode}/state`), st);
-            update(ref(db, `rooms/${roomCode}/timer`), Math.floor(Date.now()/1000) + 30);
+        // 4. SELECTION
+        function renderSel(data) {
+            show('s-selection');
+            const isBat = data.batTeam === myTeam;
+            const isCap = data.teams[myTeam].captain === myName;
+            $('sel-title').innerText = isCap ? `PICK ${isBat?'BATTER':'BOWLER'}` : "WAITING FOR CAPTAIN";
+            $('sel-list').innerHTML = '';
+            
+            if(isCap) {
+                Object.keys(data.players).forEach(p => {
+                    if(data.players[p].team === myTeam) {
+                        const b = document.createElement('button'); b.className = "btn btn-outline"; b.innerText = p;
+                        b.onclick = () => update(ref(db, `rooms/${roomCode}/turn/${isBat?'striker':'bowler'}`), p);
+                        $('sel-list').appendChild(b);
+                    }
+                });
+            }
+            // Host Move to Game
+            if(isHost && data.turn?.striker && data.turn?.bowler) {
+                let up = { state: 'GAME', timerEnd: Math.floor(Date.now()/1000)+20 };
+                up[`players/${data.turn.striker}/hand`] = CARDS.BAT;
+                up[`players/${data.turn.bowler}/hand`] = CARDS.BOWL;
+                update(ref(db, 'rooms/'+roomCode), up);
+            }
         }
+        window.forceSel = () => { /* Random pick logic */ };
+
+        // 5. GAME
+        function renderGame(data) {
+            show('s-game');
+            const bt = data.teams[data.batTeam].name; const bl = data.teams[data.bowlTeam].name;
+            $('bat-tm').innerText = bt; $('bowl-tm').innerText = bl;
+            $('score-disp').innerText = `${data.score.r}/${data.score.w}`;
+            $('overs-disp').innerText = `${Math.floor(data.score.b/6)}.${data.score.b%6}`;
+            
+            const s = data.turn.striker; const b = data.turn.bowler;
+            const amStriker = myName === s; const amBowler = myName === b;
+            
+            if(!amStriker && !amBowler) {
+                $('hand-area').innerHTML = ''; $('spec-msg').style.display = 'block'; $('spec-msg').innerText = `${s} vs ${b}`;
+            } else {
+                $('spec-msg').style.display = 'none';
+                renderHand(data.players[myName].hand, amStriker);
+            }
+
+            const myC = amStriker ? data.turn.cBat : data.turn.cBowl;
+            const oppC = amStriker ? data.turn.cBowl : data.turn.cBat;
+            if(myC) $('slot-me').innerHTML = `<div class="card">${myC}</div>`; else $('slot-me').innerText = "PICK";
+            if(oppC) $('slot-opp').innerHTML = `<div class="card" style="background:#333;">?</div>`; else $('slot-opp').innerText = "WAITING";
+
+            if(data.turn.result && data.score.b !== lastBall) {
+                lastBall = data.score.b;
+                $('res-pop').style.display='block'; $('res-pop').innerText=data.turn.result;
+                $('slot-opp').innerHTML = `<div class="card">${oppC}</div>`; // Reveal
+                setTimeout(()=>{ $('res-pop').style.display='none'; if(isHost) nextBall(); }, 2500);
+            }
+            if(isHost) $('force-btn').classList.remove('hidden');
+        }
+
+        function renderHand(h, isBat) {
+            const d = $('hand-area'); d.innerHTML = '';
+            h.forEach(c => {
+                const el = document.createElement('div'); el.className = `card ${isBat?'card-bat':'card-bowl'}`;
+                el.style.minWidth='80px'; el.style.height='110px'; el.style.fontSize='1.2rem'; el.innerText = c;
+                el.onclick = () => update(ref(db, `rooms/${roomCode}/turn/${isBat?'cBat':'cBowl'}`), c);
+                d.appendChild(el);
+            });
+        }
+
+        // HOST LOGIC
+        setInterval(() => {
+            if(!isHost || !localState || localState.state !== 'GAME') return;
+            const t = localState.turn;
+            if(t && t.cBat && t.cBowl && !t.result) {
+                const res = MATRIX[t.cBat][t.cBowl];
+                let sc = localState.score; let txt = "";
+                if(res === -1) { sc.w++; txt="OUT!"; } else { sc.r += res; txt=res+" RUNS"; }
+                update(ref(db, `rooms/${roomCode}`), { score: sc, 'turn/result': txt });
+            }
+        }, 500);
+
+        function nextBall() {
+            let sc = localState.score; sc.b++;
+            if(sc.w >= 10 || sc.b >= localState.overs*6) {
+                if(sc.target) update(ref(db, `rooms/${roomCode}`), { state: 'OVER', winner: localState.bowlTeam });
+                else update(ref(db, `rooms/${roomCode}`), { state: 'SELECTION', batTeam: localState.bowlTeam, bowlTeam: localState.batTeam, 'score/r':0,'score/w':0,'score/b':0,'score/target':sc.r, turn:{striker:null} });
+            } else {
+                let up = { 'score/b': sc.b, 'turn/cBat':null, 'turn/cBowl':null, 'turn/result':null };
+                if(localState.turn.result==='OUT!' || sc.b%6===0) up.state = 'SELECTION';
+                if(localState.turn.result==='OUT!') up['turn/striker']=null;
+                if(sc.b%6===0) up['turn/bowler']=null;
+                remCard(localState.turn.striker, localState.turn.cBat); remCard(localState.turn.bowler, localState.turn.cBowl);
+                update(ref(db, `rooms/${roomCode}`), up);
+            }
+        }
+        function remCard(p,c){ const h=localState.players[p].hand; const i=h.indexOf(c); if(i>-1) { h.splice(i,1); update(ref(db,`rooms/${roomCode}/players/${p}/hand`), h.length?h:CARDS[localState.batTeam==='A'?'BAT':'BOWL']); } }
+        window.forceGame = () => { let up={}; if(!localState.turn.cBat) up['turn/cBat']=CARDS.BAT[0]; if(!localState.turn.cBowl) up['turn/cBowl']=CARDS.BOWL[0]; update(ref(db, `rooms/${roomCode}`), up); };
+        window.exitGame = async () => { if(confirm("Exit?")) { await remove(ref(db, `rooms/${roomCode}/players/${myName}`)); location.reload(); } };
 
     </script>
 </body>
