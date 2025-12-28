@@ -3,231 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cricket Duel: Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <title>Cricket Duel</title>
     <style>
-        :root { --bg:#121212; --text:#fff; --gold:#ffcc00; --red:#e74c3c; --blue:#3498db; --green:#27ae60; --dark:#1a1a1a; }
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        /* --- 1. VISUAL THEME & CSS --- */
+        :root {
+            --pitch-green: #27ae60;
+            --pitch-light: #2ecc71;
+            --night-sky: #1e272e;
+            --card-white: #f5f6fa;
+            --csk-yellow: #f1c40f;
+            --mi-blue: #3498db;
+            --danger-red: #e74c3c;
+            --text-main: #ecf0f1;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--night-sky);
+            color: var(--text-main);
+            height: 100dvh; /* Dynamic Viewport Height [cite: 107] */
+            display: flex;
+            flex-direction: column; /* Sandwich Layout */
+            overflow: hidden;
+        }
+
+        /* --- 2. SANDWICH LAYOUT  --- */
         
-        /* LAYOUT */
-        body { 
-            background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; 
-            height: 100dvh; width: 100vw; overflow: hidden; display: flex; flex-direction: column;
+        /* Fixed Header [cite: 108] */
+        header {
+            height: 60px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            z-index: 10;
         }
 
-        /* HEADER */
-        .app-header {
-            height: 50px; background: #111; border-bottom: 2px solid var(--gold);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 10px; flex-shrink: 0; z-index: 100;
+        /* Middle Scroll Area [cite: 111] */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            background: radial-gradient(circle at center, #2c3e50 0%, #1e272e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
         }
 
-        /* MAIN CONTENT */
-        .app-content { flex: 1; position: relative; overflow: hidden; width: 100%; display: flex; flex-direction: column; }
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; }
-        .screen.active { display: flex; }
-        .scroll-y { flex: 1; overflow-y: auto; padding: 10px; }
-
-        /* FOOTER */
-        .app-footer {
-            background: #181818; border-top: 1px solid var(--gold);
-            padding: 10px; flex-shrink: 0; z-index: 100;
-            display: flex; flex-direction: column; gap: 8px;
-            padding-bottom: env(safe-area-inset-bottom, 15px);
-        }
-        .hidden { display: none !important; }
-
-        /* UI ELEMENTS */
-        .btn { border: none; padding: 12px; font-family: 'Teko'; font-size: 1.4rem; cursor: pointer; text-transform: uppercase; border-radius: 4px; width: 100%; }
-        .btn:active { transform: scale(0.96); }
-        .btn-gold { background: var(--gold); color: black; font-weight: bold; }
-        .btn-red { background: var(--red); color: white; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-outline { background: transparent; border: 1px solid #555; color: #ccc; }
-        .btn-xs { padding: 4px 10px; font-size: 0.9rem; border-radius: 4px; border: 1px solid #555; background: #222; color: #ccc; cursor: pointer; }
-        .force-btn { background: var(--red); color: white; border: none; font-weight: bold; padding: 5px 10px; border-radius: 4px; font-family: 'Teko'; cursor: pointer; }
-        .input-box { background: #222; border: 1px solid #555; color: white; padding: 12px; width: 100%; text-align: center; font-size: 1.2rem; border-radius: 6px; outline: none; }
-
-        /* --- LOBBY CARD STYLE (MATCHING SCREENSHOT) --- */
-        .lobby-cols { display: flex; flex: 1; overflow: hidden; gap: 5px; padding: 5px; }
-        .col { flex: 1; display: flex; flex-direction: column; border: 1px solid #333; background: rgba(255,255,255,0.02); border-radius: 5px; overflow: hidden; }
-        .col-head { text-align: center; padding: 5px; font-family: 'Teko'; font-size: 1.2rem; background: rgba(0,0,0,0.5); flex-shrink: 0; }
-        .col-list { flex: 1; overflow-y: auto; padding: 5px; }
-
-        .p-card { 
-            background: #202020; margin-bottom: 6px; border-radius: 4px; 
-            border-left: 4px solid #555; overflow: hidden; display: flex; flex-direction: column;
-        }
-        .p-info { 
-            padding: 8px 8px 4px 8px; display: flex; align-items: center; justify-content: space-between;
-            font-weight: bold; font-size: 0.9rem;
-        }
-        /* Buttons Area */
-        .p-actions { 
-            display: flex; gap: 5px; padding: 0 5px 5px 5px; 
-        }
-        /* The specific dark buttons from screenshot */
-        .act-btn { 
-            flex: 1; background: #333; border: 1px solid #444; color: #ccc; 
-            font-size: 0.75rem; padding: 4px 0; text-align: center; 
-            cursor: pointer; border-radius: 3px; font-family: 'Rajdhani', sans-serif; font-weight: bold;
-        }
-        .act-btn:active { background: #555; color: white; }
-
-        .red-brd { border-color: var(--red); }
-        .blue-brd { border-color: var(--blue); }
-        /* The Yellow C Badge */
-        .c-badge { 
-            background: var(--gold); color: black; font-weight: bold; 
-            padding: 1px 5px; border-radius: 2px; font-size: 0.8rem; font-family: 'Teko';
+        /* Fixed Footer [cite: 109] */
+        footer {
+            height: 90px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            overflow-x: auto; /* Horizontal Scroll for Cards [cite: 91] */
+            white-space: nowrap;
+            flex-shrink: 0;
+            z-index: 10;
         }
 
-        /* --- GAMEPLAY --- */
-        .scoreboard { background: #151515; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; height: 60px; flex-shrink: 0; }
-        .pitch { flex: 1; width: 100%; background: var(--green); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.1) 20px); }
-        .card-slot { width: 90px; height: 130px; border: 2px dashed rgba(255,255,255,0.4); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 10px; background: rgba(0,0,0,0.1); }
-        .card { width: 90px; height: 130px; background: white; color: black; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Teko'; font-size: 1.6rem; border: 3px solid #333; animation: pop 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .card-bat { border-color: var(--blue); background: linear-gradient(135deg, #fff, #e3f2fd); }
-        .card-bowl { border-color: var(--red); background: linear-gradient(135deg, #fff, #ffebee); }
-        .hand-scroll { height: 130px; background: #1a1a1a; display: flex; align-items: center; gap: 8px; padding: 0 10px; overflow-x: auto; border-top: 1px solid #444; flex-shrink: 0; }
+        /* --- UI COMPONENTS --- */
+        h1, h2, h3 { margin: 0 0 10px 0; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--pitch-light), var(--pitch-green));
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            text-transform: uppercase;
+        }
+        .btn:active { transform: scale(0.95); }
+        
+        /* Specific Styles */
+        .btn-danger { background: linear-gradient(135deg, var(--danger-red), #c0392b); box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
+        .btn-blue { background: linear-gradient(135deg, var(--mi-blue), #2980b9); }
 
-        /* --- MODAL --- */
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index: 300; display:flex; align-items:center; justify-content:center; }
-        .modal-box { background: #222; padding: 20px; border: 1px solid var(--gold); width: 90%; max-width: 350px; border-radius: 8px; }
-        @keyframes pop { from{transform:scale(0);} to{transform:scale(1);} }
+        /* Card Buttons in Footer */
+        .card-btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 80px;
+            height: 60px;
+            margin-right: 12px;
+            background: var(--card-white);
+            color: var(--night-sky);
+            border-radius: 8px;
+            border: none;
+            font-weight: 900;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            text-align: center;
+            white-space: normal;
+            line-height: 1.1;
+        }
+        .card-btn:active { transform: scale(0.9); }
+        
+        /* Screens */
+        .screen { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Lobby List */
+        .team-box { 
+            background: rgba(255,255,255,0.05); 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .player-item { 
+            padding: 10px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 0.9rem;
+        }
+
+        /* The Pitch (Gameplay) [cite: 88] */
+        .scoreboard {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0,255,0,0.1);
+        }
+        .pitch-area {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            perspective: 800px;
+        }
+        .slot {
+            width: 130px;
+            height: 180px;
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+            color: rgba(255,255,255,0.4);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* Card Reveal Logic */
+        .slot.ready { border-color: var(--csk-yellow); background: rgba(241, 196, 15, 0.1); color: var(--csk-yellow); }
+        .slot.revealed { 
+            background: var(--card-white); 
+            color: var(--night-sky); 
+            border: 4px solid var(--pitch-light);
+            transform: rotateY(0deg); 
+            font-size: 1.5rem;
+        }
+
+        /* 3D Coin [cite: 69] */
+        #coin {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: gold;
+            border: 8px solid #d4ac0d;
+            margin: 30px auto;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; font-weight: 900; color: #7f6000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .spinning { animation: flip 0.8s infinite linear; }
+        @keyframes flip { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
+
+        /* Overlay */
+        #result-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 100;
+        }
+        #res-text { font-size: 5rem; font-weight: 900; color: var(--csk-yellow); text-shadow: 0 0 30px var(--csk-yellow); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="app-header">
-        <button class="btn-xs" style="width:auto;" onclick="$('rules-ov').classList.remove('hidden')">RULES</button>
-        <div id="status-txt" style="font-family:'Teko'; font-size:1.4rem; color:var(--gold);">LOBBY</div>
-        <button id="force-btn" class="force-btn hidden" onclick="forceNext()">FORCE ⏩</button>
-    </div>
+    <header>
+        <div style="font-weight:900; font-size:1.2rem; color:var(--pitch-light);">CRICKET DUEL</div>
+        <button id="force-btn" class="btn btn-danger" style="padding: 6px 16px; font-size: 0.8rem; display:none;">FORCE ⏩</button>
+    </header>
 
-    <div class="app-content">
-
-        <div id="s-home" class="screen active">
-            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px;">
-                <h1 style="font-size:5rem; color:var(--gold); margin:0; font-family:'Teko'">CRICKET<br>DUEL</h1>
-                <p style="color:#777; margin-bottom:30px;">MOBILE EDITION</p>
-                <input type="text" id="my-name" class="input-box" placeholder="ENTER YOUR NAME" maxlength="10">
-                <button class="btn btn-gold" onclick="createRoom()" style="margin-bottom:10px;">HOST MATCH</button>
-                <div style="display:flex; gap:10px; width:100%;">
-                    <input type="text" id="join-code" class="input-box" placeholder="CODE" style="margin:0;">
-                    <button class="btn btn-outline" style="margin:0; width:40%;" onclick="joinRoom()">JOIN</button>
-                </div>
-            </div>
+    <main>
+        
+        <div id="screen-login" class="screen active">
+            <h1>Enter Stadium</h1>
+            <p style="color: #bdc3c7; font-size: 0.9rem;">Multiplayer Strategy Card Game</p>
+            <input type="text" id="inp-room" placeholder="Room Code (e.g. IPL)" style="display:block; width:100%; padding:15px; margin:10px 0; border-radius:10px; border:none; box-sizing:border-box;">
+            <input type="text" id="inp-name" placeholder="Your Name" style="display:block; width:100%; padding:15px; margin:10px 0; border-radius:10px; border:none; box-sizing:border-box;">
+            <br>
+            <button class="btn" style="width:100%" onclick="app.join()">JOIN MATCH</button>
         </div>
 
-        <div id="s-lobby" class="screen">
-            <div style="text-align:center; padding:10px; background:#151515;">
-                <span style="color:#777;">ROOM:</span> 
-                <span id="disp-code" style="color:var(--gold); font-size:1.5rem; font-weight:bold;">...</span>
+        <div id="screen-lobby" class="screen">
+            <h2>Room: <span id="lobby-code" style="color:var(--pitch-light)"></span></h2>
+            
+            <div class="team-box" style="border-left: 5px solid var(--danger-red);">
+                <h3 style="color:var(--danger-red); text-align:left;">RED TEAM</h3>
+                <div id="list-a"></div>
+                <div id="cap-a-name" style="font-size:0.8rem; color:gold; margin-top:5px;"></div>
             </div>
-            <div class="lobby-cols">
-                <div class="col">
-                    <div class="col-head" style="color:var(--red); border-bottom:2px solid var(--red);">RED TEAM</div>
-                    <div id="list-red" class="col-list"></div>
-                </div>
-                <div class="col">
-                    <div class="col-head" style="color:var(--blue); border-bottom:2px solid var(--blue);">BLUE TEAM</div>
-                    <div id="list-blue" class="col-list"></div>
-                </div>
+
+            <div class="team-box" style="border-left: 5px solid var(--mi-blue);">
+                <h3 style="color:var(--mi-blue); text-align:left;">BLUE TEAM</h3>
+                <div id="list-b"></div>
+                <div id="cap-b-name" style="font-size:0.8rem; color:gold; margin-top:5px;"></div>
             </div>
+
+            <div id="host-controls" style="display:none; text-align:center; margin-top:20px;">
+                <p style="color:#bdc3c7; font-size:0.8rem;">HOST CONTROLS</p>
+                <button class="btn btn-blue" onclick="app.hostAssign()">Assign Caps</button>
+                <button class="btn" onclick="app.hostStart()">START MATCH</button>
+            </div>
+            <p id="lobby-msg" style="text-align:center; color:#7f8c8d; margin-top:20px;">Waiting for players...</p>
         </div>
 
-        <div id="s-naming" class="screen" style="justify-content:center; align-items:center; padding:20px;">
-            <div id="naming-ui" class="hidden" style="width:100%; text-align:center;">
-                <h2 style="color:var(--gold); font-family:'Teko'; font-size:3rem;">YOU ARE CAPTAIN!</h2>
-                <input type="text" id="team-name-in" class="input-box" placeholder="ENTER TEAM NAME">
-                <button class="btn btn-gold" onclick="submitName()">SUBMIT NAME</button>
+        <div id="screen-naming" class="screen">
+            <h2>Team Identity</h2>
+            <div id="naming-ui" style="display:none;">
+                <input type="text" id="inp-teamname" placeholder="Enter Team Name" style="padding:15px; width:100%; border-radius:10px; border:none; margin-bottom:15px; box-sizing:border-box;">
+                <button class="btn" style="width:100%" onclick="app.submitName()">CONFIRM NAME</button>
             </div>
-            <div id="naming-wait" class="hidden" style="text-align:center;">
-                <h2 style="color:#aaa;">WAITING FOR CAPTAINS...</h2>
-                <div style="margin-top:20px; font-size:1.2rem;">
-                    <div id="status-red" style="color:var(--red); margin-bottom:10px;">RED: ...</div>
-                    <div id="status-blue" style="color:var(--blue);">BLUE: ...</div>
-                </div>
-            </div>
+            <p id="naming-msg" style="text-align:center;">Waiting for captains...</p>
         </div>
 
-        <div id="s-toss" class="screen" style="justify-content:center; align-items:center; text-align:center;">
-            <h1 style="font-family:'Teko'; font-size:5rem; color:var(--gold);">TOSS</h1>
-            <h2 id="toss-res" style="color:#fff;">FLIPPING...</h2>
-            <div id="toss-ui" class="hidden" style="width:100%; margin-top:20px;">
-                <p style="color:var(--gold);">YOU WON! CHOOSE:</p>
-                <div style="display:flex; justify-content:center; gap:15px;">
-                    <button class="btn btn-blue" style="width:40%;" onclick="pickToss('BAT')">BAT</button>
-                    <button class="btn btn-red" style="width:40%;" onclick="pickToss('BOWL')">BOWL</button>
-                </div>
-            </div>
-            <p id="toss-wait" class="hidden" style="color:#666;">Waiting for winner decision...</p>
+        <div id="screen-toss" class="screen" style="text-align:center;">
+            <h2>The Toss</h2>
+            <div id="coin">?</div>
+            <div id="toss-ui" style="margin-top:20px;"></div>
+            <p id="toss-msg" style="margin-top:20px; font-weight:bold;"></p>
         </div>
 
-        <div id="s-sel" class="screen">
-            <div style="padding:15px; text-align:center; background:#1a1a1a;">
-                <div id="sel-title" style="color:var(--gold); font-size:1.5rem; font-family:'Teko'">SELECT PLAYER</div>
-            </div>
-            <div id="sel-list" class="scroll-y"></div>
+        <div id="screen-selection" class="screen">
+            <h2>Tactics</h2>
+            <h3 id="sel-title" style="color:var(--pitch-light); font-size:0.9rem;"></h3>
+            <div id="sel-list" class="team-box"></div>
+            <p id="sel-msg" style="text-align:center; color:#95a5a6;"></p>
         </div>
 
-        <div id="s-game" class="screen">
+        <div id="screen-game" class="screen">
             <div class="scoreboard">
                 <div>
-                    <div id="bat-name" style="color:var(--blue); font-size:0.8rem;">BAT</div>
-                    <div id="score-disp" style="font-family:'Teko'; font-size:2rem; line-height:0.9;">0/0</div>
+                    <div style="font-size:0.7rem; color:#888;">BATTING</div>
+                    <div id="sb-bat" style="font-weight:bold;">CSK</div>
                 </div>
                 <div style="text-align:center;">
-                    <div id="target-disp" style="color:#777; font-size:0.8rem;"></div>
-                    <div style="color:var(--gold); font-size:1.2rem; font-family:'Teko'">PLAY</div>
+                    <div style="font-size:1.5rem; color:#fff;" id="sb-score">0/0</div>
+                    <div style="font-size:0.8rem; color:#888;">TARGET: <span id="sb-target">--</span></div>
                 </div>
                 <div style="text-align:right;">
-                    <div id="bowl-name" style="color:var(--red); font-size:0.8rem;">BOWL</div>
-                    <div id="over-disp" style="font-family:'Teko'; font-size:2rem; line-height:0.9;">0.0</div>
+                    <div style="font-size:0.7rem; color:#888;">BOWLING</div>
+                    <div id="sb-bowl" style="font-weight:bold;">MI</div>
                 </div>
             </div>
-            <div class="pitch">
-                <div id="slot-opp" class="card-slot"><span style="color:#555;">OPP</span></div>
-                <div style="width:60%; height:2px; background:rgba(255,255,255,0.1); margin:10px 0;"></div>
-                <div id="slot-me" class="card-slot"><span style="color:#555;">YOU</span></div>
-                <div id="res-pop" style="position:absolute; font-family:'Teko'; font-size:5rem; display:none; text-shadow:0 0 20px black; z-index:50;">OUT!</div>
+
+            <div style="text-align:center; margin-bottom:10px;">
+                <span style="background:#333; padding:5px 10px; border-radius:5px; font-size:0.8rem;">OVERS: <span id="sb-overs">0.0</span></span>
             </div>
-        </div>
 
-        <div id="s-over" class="screen" style="justify-content:center; align-items:center; text-align:center;">
-            <h1 style="color:var(--gold); font-family:'Teko'; font-size:4rem;">GAME OVER</h1>
-            <h2 id="win-msg" style="font-family:'Teko'; font-size:2rem;">TEAM WINS</h2>
-            <button class="btn btn-gold" style="width:auto; margin-top:20px;" onclick="location.reload()">MAIN MENU</button>
-        </div>
-
-    </div>
-
-    <div id="footer-area" class="app-footer hidden">
-        <div id="host-panel" class="hidden">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <button class="btn-xs" style="width:48%; padding:10px;" onclick="shuffleTeams()">SHUFFLE</button>
-                <button class="btn-xs" style="width:48%; padding:10px;" onclick="autoCaptains()">AUTO CAP</button>
+            <div class="pitch-area">
+                <div id="slot-opp" class="slot">
+                    <span style="font-size:2rem;">?</span>
+                    <span style="font-size:0.7rem; margin-top:5px;">OPPONENT</span>
+                </div>
+                <div id="slot-me" class="slot">
+                    <span style="font-size:2rem;">...</span>
+                    <span style="font-size:0.7rem; margin-top:5px;">YOUR MOVE</span>
+                </div>
             </div>
-            <button class="btn btn-gold" onclick="startGame()">START GAME</button>
-        </div>
-        <div id="hand-area" class="hand-scroll hidden"></div>
-        <div id="wait-msg" class="hidden" style="text-align:center; color:#555;">Waiting for Host...</div>
-        <div id="spec-msg" class="hidden" style="text-align:center; color:#555;">WATCHING MATCH...</div>
-    </div>
 
-    <div id="rules-ov" class="overlay hidden" onclick="this.classList.add('hidden')">
-        <div class="modal-box">
-            <h2 style="color:var(--gold); text-align:center; margin-bottom:10px;">RULES</h2>
-            <p style="text-align:center; color:#ccc;">High score wins. Captains pick players.</p>
-            <p style="text-align:center; margin-top:15px; color:#666;">Tap to Close</p>
+            <p id="game-msg" style="text-align:center; color:var(--csk-yellow); font-weight:bold;">Prepare for the next ball...</p>
         </div>
+
+    </main>
+
+    <footer id="foot-hand">
+        </footer>
+
+    <div id="result-overlay">
+        <div id="res-text">OUT!</div>
+        <div id="res-desc" style="color:#bdc3c7; margin-bottom:30px; font-size:1.2rem;">Clean Bowled</div>
+        <button class="btn" onclick="app.closeOverlay()">NEXT BALL</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // --- 1. CONFIGURATION (User Provided) ---
         const firebaseConfig = {
             apiKey: "AIzaSyC--gCjpWdYsezrqvQ4tAzvtLKGW_oRtsM",
             authDomain: "cricketduel.firebaseapp.com",
@@ -235,256 +326,273 @@
             projectId: "cricketduel",
             storageBucket: "cricketduel.firebasestorage.app",
             messagingSenderId: "781919289708",
-            appId: "1:781919289708:web:3c6076617f4b7813757349"
+            appId: "1:781919289708:web:3c6076617f4b7813757349",
+            measurementId: "G-HJC6PCGPEK"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const fApp = initializeApp(firebaseConfig);
+        const db = getDatabase(fApp);
 
-        const CARDS = { BAT: ['6 RUNS','4 RUNS','4 RUNS','2 RUNS','2 RUNS','1 RUN','1 RUN','DEFENSE'], BOWL: ['YORKER','BOUNCER','FAST','FAST','SPIN','SPIN','FULL TOSS','FULL TOSS'] };
-        const MATRIX = { '6 RUNS':{'FULL TOSS':6,'SPIN':6,'FAST':-1,'YORKER':-1,'BOUNCER':0}, '4 RUNS':{'FULL TOSS':4,'BOUNCER':4,'FAST':-1,'YORKER':-1,'SPIN':0}, '2 RUNS':{'SPIN':2,'FAST':2,'BOUNCER':-1,'YORKER':-1,'FULL TOSS':0}, '1 RUN':{'FAST':1,'YORKER':1,'SPIN':-1,'BOUNCER':-1,'FULL TOSS':0}, 'DEFENSE':{'FAST':0,'YORKER':0,'FULL TOSS':-1,'SPIN':0,'BOUNCER':0} };
-
-        let myName = sessionStorage.getItem('cd_name') || "", roomCode = sessionStorage.getItem('cd_room') || "", isHost = false, myTeam = "A";
-        let localState = null, lastBall = -1;
-
-        const $ = id => document.getElementById(id);
-
-        window.createRoom = async () => {
-            myName = $('my-name').value.toUpperCase(); if(!myName) return alert("Name?");
-            roomCode = Math.random().toString(36).substring(2,6).toUpperCase(); isHost = true;
-            sessionStorage.setItem('cd_name', myName); sessionStorage.setItem('cd_room', roomCode);
-            await set(ref(db, 'rooms/'+roomCode), { state: 'LOBBY', players: {[myName]:{team:'A',hand:[]}}, teams:{A:{name:'RED TEAM'},B:{name:'BLUE TEAM'}}, score:{r:0,w:0,b:0} });
-            init();
-        };
-        window.joinRoom = async () => {
-            myName = $('my-name').value.toUpperCase(); roomCode = $('join-code').value.toUpperCase(); if(!myName||!roomCode) return alert("Info?");
-            if(!(await get(ref(db, 'rooms/'+roomCode))).exists()) return alert("No Room");
-            sessionStorage.setItem('cd_name', myName); sessionStorage.setItem('cd_room', roomCode);
-            const snap = await get(ref(db, 'rooms/'+roomCode));
-            const pCount = Object.keys(snap.val().players||{}).length;
-            await update(ref(db, `rooms/${roomCode}/players/${myName}`), { team: pCount%2===0?'A':'B' });
-            init();
+        // --- 2. LOGIC MATRIX [cite: 7] ---
+        const MATRIX = {
+            "6 RUNS": { "SPIN": {v:6, t:"Smashed!"}, "FULL TOSS": {v:6, t:"Punished!"}, "FAST": {v:"OUT", t:"Pace!"}, "YORKER": {v:"OUT", t:"Bowled!"}, "BOUNCER": {v:0, t:"Missed"} },
+            "4 RUNS": { "BOUNCER": {v:4, t:"Pulled!"}, "FULL TOSS": {v:4, t:"Driven!"}, "FAST": {v:"OUT", t:"Edged!"}, "YORKER": {v:"OUT", t:"LBW!"}, "SPIN": {v:0, t:"Dot Ball"} },
+            "2 RUNS": { "SPIN": {v:2, t:"Gap shot"}, "FAST": {v:2, t:"Guided"}, "BOUNCER": {v:"OUT", t:"Top Edge!"}, "YORKER": {v:"OUT", t:"Toe Crush!"}, "FULL TOSS": {v:0, t:"Dot Ball"} },
+            "1 RUN":  { "FAST": {v:1, t:"Quick Single"}, "YORKER": {v:1, t:"Dug Out"}, "SPIN": {v:"OUT", t:"Stumped!"}, "BOUNCER": {v:"OUT", t:"Fended!"}, "FULL TOSS": {v:0, t:"Dot Ball"} },
+            "DEFENSE":{ "FAST": {v:0, t:"Solid"}, "YORKER": {v:0, t:"Digs it out"}, "BOUNCER": {v:0, t:"Ducks"}, "SPIN": {v:0, t:"Blocked"}, "FULL TOSS": {v:"OUT", t:"Napping!"} }
         };
 
-        // BUTTON ACTIONS
-        window.swap = (p, t) => { 
-            // Ensure we have current room code
-            const r = sessionStorage.getItem('cd_room');
-            if(r) update(ref(db, `rooms/${r}/players/${p}/team`), t==='A'?'B':'A');
-        };
-        window.setCap = (p, t) => {
-            const r = sessionStorage.getItem('cd_room');
-            if(r) update(ref(db, `rooms/${r}/teams/${t}/captain`), p);
-        };
-        
-        window.shuffleTeams = () => {
-            const players = Object.keys(localState.players);
-            for (let i = players.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [players[i], players[j]] = [players[j], players[i]]; }
-            let updates = {};
-            players.forEach((p,i) => updates[`players/${p}/team`] = (i%2===0?'A':'B'));
-            update(ref(db, `rooms/${roomCode}`), updates);
-        };
+        const BAT_HAND = Object.keys(MATRIX);
+        const BOWL_HAND = ["SPIN", "FAST", "YORKER", "BOUNCER", "FULL TOSS"];
 
-        window.autoCaptains = () => {
-            const p = localState.players;
-            const tA = Object.keys(p).filter(k=>p[k].team==='A');
-            const tB = Object.keys(p).filter(k=>p[k].team==='B');
-            let up = {};
-            if(tA.length) up['teams/A/captain'] = tA[Math.floor(Math.random()*tA.length)];
-            if(tB.length) up['teams/B/captain'] = tB[Math.floor(Math.random()*tB.length)];
-            update(ref(db, `rooms/${roomCode}`), up);
-        };
+        // --- 3. STATE ---
+        let room = "";
+        let me = "";
+        let team = ""; 
+        let isHost = false;
+        let localData = null;
 
-        window.startGame = () => {
-            let up = { state: 'NAMING' };
-            const p = localState.players;
-            const tA = Object.keys(p).filter(k=>p[k].team==='A');
-            const tB = Object.keys(p).filter(k=>p[k].team==='B');
-            if(!localState.teams.A.captain && tA.length) up['teams/A/captain'] = tA[0];
-            if(!localState.teams.B.captain && tB.length) up['teams/B/captain'] = tB[0];
-            update(ref(db, 'rooms/'+roomCode), up);
-        };
-
-        window.submitName = () => {
-            const n = $('team-name-in').value.toUpperCase(); if(!n) return;
-            let up = {}; up[`teams/${myTeam}/name`]=n; up[`teams/${myTeam}/isNamed`]=true;
-            update(ref(db, 'rooms/'+roomCode), up);
-        };
-
-        window.pickToss = (c) => update(ref(db, 'rooms/'+roomCode), { state: 'SELECTION', batTeam: (c==='BAT'?localState.tossWinner:(localState.tossWinner==='A'?'B':'A')), bowlTeam: (c==='BAT'?(localState.tossWinner==='A'?'B':'A'):localState.tossWinner) });
-
-        window.forceNext = () => {
-            const s = localState.state;
-            if(s === 'NAMING') {
-                let up = { state: 'TOSS' };
-                if(!localState.teams.A.isNamed) up['teams/A/name'] = "TEAM RED";
-                if(!localState.teams.B.isNamed) up['teams/B/name'] = "TEAM BLUE";
-                update(ref(db, `rooms/${roomCode}`), up);
-            }
-            else if(s === 'TOSS') {
-                if(!localState.tossWinner) update(ref(db, `rooms/${roomCode}/tossWinner`), 'A');
-                else window.pickToss('BAT');
-            }
-            else if(s === 'SELECTION') {
-                const getR = (t) => { const k=Object.keys(localState.players).filter(k=>localState.players[k].team===t); return k[Math.floor(Math.random()*k.length)]; };
-                let up={}; if(!localState.turn?.striker) up['turn/striker']=getR(localState.batTeam); if(!localState.turn?.bowler) up['turn/bowler']=getR(localState.bowlTeam);
-                update(ref(db, `rooms/${roomCode}`), up);
-            }
-            else if(s === 'GAME') {
-                let up={}; if(!localState.turn.cBat) up['turn/cBat']=CARDS.BAT[0]; if(!localState.turn.cBowl) up['turn/cBowl']=CARDS.BOWL[0]; update(ref(db, `rooms/${roomCode}`), up);
-            }
-        };
-        
-        window.exitGame = async () => { if(confirm("Exit?")) { await remove(ref(db, `rooms/${roomCode}/players/${myName}`)); location.reload(); } };
-
-        function init() {
-            $('disp-code').innerText = roomCode;
-            onValue(ref(db, 'rooms/'+roomCode), snap => { localState = snap.val(); if(localState) render(localState); else location.reload(); });
-        }
-
-        function render(data) {
-            $('status-txt').innerText = data.state;
-            if(data.players && data.players[myName]) myTeam = data.players[myName].team;
-            if(isHost) $('force-btn').classList.remove('hidden');
-
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            $('footer-area').classList.remove('hidden');
-            $('host-panel').classList.add('hidden');
-            $('hand-area').classList.add('hidden');
-            $('wait-msg').classList.add('hidden');
-            $('spec-msg').classList.add('hidden');
-
-            if(data.state === 'LOBBY') {
-                $('s-lobby').classList.add('active');
-                if(isHost) $('host-panel').classList.remove('hidden'); else $('wait-msg').classList.remove('hidden');
-                renderLobby(data);
-            } 
-            else if(data.state === 'NAMING') {
-                $('s-naming').classList.add('active'); $('footer-area').classList.add('hidden');
-                const isCap = data.teams[myTeam].captain === myName;
-                $('status-red').innerText = `RED: ${data.teams.A.isNamed ? 'READY' : 'WAITING...'}`;
-                $('status-blue').innerText = `BLUE: ${data.teams.B.isNamed ? 'READY' : 'WAITING...'}`;
+        // --- 4. APP LOGIC ---
+        const app = {
+            join: () => {
+                const c = document.getElementById('inp-room').value.toUpperCase().trim();
+                const n = document.getElementById('inp-name').value.trim();
+                if(!c || !n) return alert("Enter Code & Name");
                 
-                if(isCap && !data.teams[myTeam].isNamed) { $('naming-ui').classList.remove('hidden'); $('naming-wait').classList.add('hidden'); }
-                else { $('naming-ui').classList.add('hidden'); $('naming-wait').classList.remove('hidden'); }
-                
-                if(isHost && data.teams.A.isNamed && data.teams.B.isNamed) update(ref(db, `rooms/${roomCode}/state`), 'TOSS');
-            }
-            else if(data.state === 'TOSS') {
-                $('s-toss').classList.add('active'); $('footer-area').classList.add('hidden');
-                if(isHost && !data.tossWinner) setTimeout(() => update(ref(db, `rooms/${roomCode}/tossWinner`), Math.random()>0.5?'A':'B'), 1500);
-                if(data.tossWinner) {
-                    $('toss-res').innerText = data.teams[data.tossWinner].name + " WON!";
-                    if(data.teams[myTeam].captain === myName && data.tossWinner === myTeam) { $('toss-ui').classList.remove('hidden'); $('toss-wait').classList.add('hidden'); }
-                    else { $('toss-ui').classList.add('hidden'); $('toss-wait').classList.remove('hidden'); }
-                }
-            }
-            else if(data.state === 'SELECTION') {
-                $('s-sel').classList.add('active'); $('footer-area').classList.add('hidden');
-                const isBat = data.batTeam === myTeam; const cap = data.teams[myTeam].captain === myName;
-                $('sel-list').innerHTML = '';
-                if(cap) {
-                    Object.keys(data.players).forEach(p => {
-                        if(data.players[p].team === myTeam) {
-                            const b = document.createElement('button'); b.className = "btn btn-outline"; b.innerText = p; b.style.marginBottom="5px";
-                            b.onclick = () => update(ref(db, `rooms/${roomCode}/turn/${isBat?'striker':'bowler'}`), p);
-                            $('sel-list').appendChild(b);
-                        }
+                room = c; me = n;
+                const rRef = ref(db, `rooms/${room}`);
+
+                get(rRef).then(snap => {
+                    if(!snap.exists()) {
+                        isHost = true;
+                        document.getElementById('force-btn').style.display = "block";
+                        set(rRef, {
+                            state: "LOBBY",
+                            players: { [me]: { team:"A", status:"ON" } },
+                            teams: { A:{name:"Red", isNamed:false}, B:{name:"Blue", isNamed:false} },
+                            score: { r:0, w:0, b:0, target:null }
+                        });
+                    } else {
+                        // Auto-balance teams [cite: 47]
+                        const p = snap.val().players || {};
+                        const t = Object.keys(p).length % 2 === 0 ? "A" : "B";
+                        update(ref(db, `rooms/${room}/players/${me}`), { team: t, status:"ON" });
+                    }
+                    onValue(rRef, s => { localData = s.val(); app.render(localData); if(isHost) app.hostLoop(localData); });
+                });
+            },
+
+            // --- RENDER ENGINE ---
+            render: (d) => {
+                if(!d) return;
+                document.querySelectorAll('.screen').forEach(e => e.classList.remove('active'));
+                document.getElementById(`screen-${d.state.toLowerCase()}`).classList.add('active');
+
+                // LOBBY
+                if(d.state === "LOBBY") {
+                    document.getElementById('lobby-code').innerText = room;
+                    const lA = document.getElementById('list-a');
+                    const lB = document.getElementById('list-b');
+                    lA.innerHTML = ""; lB.innerHTML = "";
+                    Object.entries(d.players||{}).forEach(([k,v]) => {
+                        const el = `<div class="player-item">${k}</div>`;
+                        if(v.team === "A") lA.innerHTML += el; else lB.innerHTML += el;
+                        if(k === me) team = v.team;
                     });
+                    if(d.teams.A.captain) document.getElementById('cap-a-name').innerText = "C: "+d.teams.A.captain;
+                    if(d.teams.B.captain) document.getElementById('cap-b-name').innerText = "C: "+d.teams.B.captain;
+                    if(isHost) document.getElementById('host-controls').style.display = "block";
                 }
-                if(isHost && data.turn?.striker && data.turn?.bowler) {
-                    let up = { state: 'GAME' }; up[`players/${data.turn.striker}/hand`] = CARDS.BAT; up[`players/${data.turn.bowler}/hand`] = CARDS.BOWL; update(ref(db, 'rooms/'+roomCode), up);
-                }
-            }
-            else if(data.state === 'GAME') {
-                $('s-game').classList.add('active');
-                renderGame(data);
-            }
-            else if(data.state === 'OVER') { $('s-over').classList.add('active'); $('footer-area').classList.add('hidden'); $('win-msg').innerText = (data.winner==='A'?data.teams.A.name:data.teams.B.name)+" WINS!"; }
-        }
 
-        function renderLobby(data) {
-            $('list-red').innerHTML = ''; $('list-blue').innerHTML = '';
-            Object.keys(data.players).forEach(p => {
-                const tm = data.players[p].team; const isCap = data.teams[tm].captain === p;
-                const div = document.createElement('div'); div.className = `p-card ${tm==='A'?'red-brd':'blue-brd'}`;
-                
-                // Info Row
-                let html = `<div class="p-info"><span>${p}</span> ${isCap?'<span class="c-badge">C</span>':''}</div>`;
-                
-                // Actions Row (Host Only)
+                // NAMING
+                if(d.state === "NAMING") {
+                    const myT = d.teams[team];
+                    const ui = document.getElementById('naming-ui');
+                    if(myT.captain === me && !myT.isNamed) {
+                        ui.style.display = "block";
+                        document.getElementById('naming-msg').innerText = "Captain, name your team!";
+                    } else {
+                        ui.style.display = "none";
+                        document.getElementById('naming-msg').innerText = `Waiting for ${myT.captain} to name team...`;
+                    }
+                }
+
+                // TOSS
+                if(d.state === "TOSS") {
+                    const step = d.toss.step;
+                    const coin = document.getElementById('coin');
+                    const ui = document.getElementById('toss-ui');
+                    const msg = document.getElementById('toss-msg');
+                    
+                    coin.innerText = step === "DECIDE" ? (d.toss.call==="HEADS"?"H":"T") : "?";
+                    coin.className = step === "SPIN" ? "spinning" : "";
+                    ui.innerHTML = "";
+
+                    if(step === "CALL" && team === "A" && d.teams.A.captain === me) {
+                        msg.innerText = "Red Captain, Call it!";
+                        ui.innerHTML = `<button class="btn" onclick="app.tossCall('HEADS')">HEADS</button> <button class="btn" onclick="app.tossCall('TAILS')">TAILS</button>`;
+                    } else if (step === "DECIDE" && d.toss.winner === team && d.teams[team].captain === me) {
+                        msg.innerText = "YOU WON! Choose to:";
+                        ui.innerHTML = `<button class="btn" onclick="app.tossDecide('BAT')">BAT</button> <button class="btn" onclick="app.tossDecide('BOWL')">BOWL</button>`;
+                    } else {
+                        msg.innerText = step === "SPIN" ? "Spinning..." : "Waiting...";
+                    }
+                }
+
+                // SELECTION
+                if(d.state === "SELECTION") {
+                    const isBat = d.batTeam === team;
+                    const role = isBat ? "Striker" : "Bowler";
+                    const isCap = d.teams[team].captain === me;
+                    
+                    document.getElementById('sel-title').innerText = isBat ? "Pick Striker" : "Pick Bowler";
+                    const list = document.getElementById('sel-list');
+                    list.innerHTML = "";
+                    
+                    if(isCap) {
+                        Object.entries(d.players).forEach(([k,v]) => {
+                            if(v.team === team) list.innerHTML += `<button class="btn" style="width:100%; margin-bottom:5px; font-size:0.8rem;" onclick="app.selectPlayer('${k}')">${k}</button>`;
+                        });
+                        document.getElementById('sel-msg').innerText = "Tap a player to send them to the pitch.";
+                    } else {
+                        document.getElementById('sel-msg').innerText = "Captain is selecting...";
+                    }
+                }
+
+                // GAME
+                if(d.state === "GAME") {
+                    // Update Scoreboard
+                    document.getElementById('sb-bat').innerText = d.teams[d.batTeam].name;
+                    document.getElementById('sb-bowl').innerText = d.teams[d.bowlTeam].name;
+                    document.getElementById('sb-score').innerText = `${d.score.r}/${d.score.w}`;
+                    document.getElementById('sb-overs').innerText = Math.floor(d.score.b/6) + "." + (d.score.b%6);
+                    document.getElementById('sb-target').innerText = d.score.target || "--";
+
+                    // Determine Role
+                    const turn = d.turn || {};
+                    let role = "spec";
+                    if(turn.striker === me) role = "bat";
+                    if(turn.bowler === me) role = "bowl";
+
+                    // Update Hand (Footer)
+                    const foot = document.getElementById('foot-hand');
+                    foot.innerHTML = "";
+                    if(role === "bat") BAT_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
+                    else if(role === "bowl") BOWL_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
+                    else foot.innerHTML = "<p style='width:100%; text-align:center; color:#7f8c8d'>Spectating...</p>";
+
+                    // Update Pitch Slots
+                    const sMe = document.getElementById('slot-me');
+                    const sOpp = document.getElementById('slot-opp');
+                    
+                    sMe.className = "slot"; sOpp.className = "slot"; // Reset
+
+                    if(role !== "spec") {
+                        // My Card State
+                        const myCard = role === "bat" ? turn.cBat : turn.cBowl;
+                        if(myCard) { sMe.classList.add('ready'); sMe.innerHTML = `<span style="font-size:1.2rem">${myCard}</span>`; }
+                        else { sMe.innerHTML = "YOUR<br>MOVE"; }
+
+                        // Opponent State
+                        const oppCard = role === "bat" ? turn.cBowl : turn.cBat;
+                        if(oppCard) { sOpp.classList.add('ready'); sOpp.innerHTML = "READY"; }
+                        else { sOpp.innerHTML = "OPPONENT<br>THINKING"; }
+                    } else {
+                        sMe.innerHTML = turn.striker;
+                        sOpp.innerHTML = turn.bowler;
+                    }
+
+                    // Result
+                    if(turn.result) {
+                        document.getElementById('result-overlay').style.display = "flex";
+                        document.getElementById('res-text').innerText = turn.result;
+                        document.getElementById('res-desc').innerText = turn.desc;
+                        
+                        // Reveal logic
+                        if(role !== "spec") {
+                            sOpp.classList.add('revealed');
+                            sOpp.innerText = role === "bat" ? turn.cBowl : turn.cBat;
+                        }
+                    } else {
+                        document.getElementById('result-overlay').style.display = "none";
+                    }
+                }
+            },
+
+            // --- USER ACTIONS ---
+            hostAssign: () => {
+                const ps = Object.entries(localData.players);
+                const cA = ps.find(([k,v]) => v.team==="A")[0];
+                const cB = ps.find(([k,v]) => v.team==="B")[0];
+                update(ref(db, `rooms/${room}/teams/A`), {captain:cA});
+                update(ref(db, `rooms/${room}/teams/B`), {captain:cB});
+            },
+            hostStart: () => update(ref(db, `rooms/${room}`), {state:"NAMING"}),
+            submitName: () => {
+                const n = document.getElementById('inp-teamname').value;
+                update(ref(db, `rooms/${room}/teams/${team}`), {name:n, isNamed:true});
+            },
+            tossCall: (c) => update(ref(db, `rooms/${room}/toss`), {call:c, step:"SPIN"}),
+            tossDecide: (c) => {
+                const l = team==="A"?"B":"A";
+                update(ref(db, `rooms/${room}`), {batTeam:team, bowlTeam:l, state:"SELECTION"});
+            },
+            selectPlayer: (p) => {
+                const isBat = localData.batTeam === team;
+                update(ref(db, `rooms/${room}/turn/${isBat?"striker":"bowler"}`), p);
+            },
+            play: (c) => {
+                const isBat = localData.batTeam === team;
+                update(ref(db, `rooms/${room}/turn/${isBat?"cBat":"cBowl"}`), c);
+            },
+            closeOverlay: () => {
+                // Host resets state, others just wait
                 if(isHost) {
-                    html += `<div class="p-actions">
-                        <div class="act-btn" onclick="swap('${p}','${tm}')">SWAP</div>
-                        <div class="act-btn" onclick="setCap('${p}','${tm}')">CAP</div>
-                    </div>`;
+                     update(ref(db, `rooms/${room}`), {state:"SELECTION", turn:{striker:null, bowler:null, cBat:null, cBowl:null, result:null}});
                 }
-                div.innerHTML = html;
-                (tm==='A'?$('list-red'):$('list-blue')).appendChild(div);
-            });
-        }
+            },
 
-        function renderGame(data) {
-            $('bat-name').innerText = data.teams[data.batTeam].name; $('bowl-name').innerText = data.teams[data.bowlTeam].name;
-            $('score-disp').innerText = `${data.score.r}/${data.score.w}`; $('over-disp').innerText = `${Math.floor(data.score.b/6)}.${data.score.b%6}`;
-            if(data.score.target) $('target-disp').innerText = `TARGET: ${data.score.target}`;
-            
-            const s = data.turn.striker; const b = data.turn.bowler;
-            const amStriker = myName === s; const amBowler = myName === b;
-            
-            if(!amStriker && !amBowler) { $('hand-area').classList.add('hidden'); $('spec-msg').classList.remove('hidden'); $('spec-msg').innerText = `${s} vs ${b}`; }
-            else { $('spec-msg').classList.add('hidden'); $('hand-area').classList.remove('hidden'); renderHand(data.players[myName].hand, amStriker); }
+            // --- HOST SERVER LOGIC  ---
+            hostLoop: (d) => {
+                // Naming -> Toss
+                if(d.state==="NAMING" && d.teams.A.isNamed && d.teams.B.isNamed) {
+                    update(ref(db, `rooms/${room}`), {state:"TOSS", toss:{step:"CALL"}});
+                }
+                // Toss Spin
+                if(d.state==="TOSS" && d.toss.step==="SPIN" && !d.toss.winner) {
+                    setTimeout(() => {
+                        const res = Math.random()>0.5?"HEADS":"TAILS";
+                        const w = res===d.toss.call ? "A" : "B";
+                        update(ref(db, `rooms/${room}/toss`), {winner:w, step:"DECIDE", call:res}); // call updated to result for logic
+                    }, 2000);
+                }
+                // Selection -> Game
+                if(d.state==="SELECTION" && d.turn && d.turn.striker && d.turn.bowler) {
+                    update(ref(db, `rooms/${room}`), {state:"GAME"});
+                }
+                // Game Calc [cite: 100]
+                if(d.state==="GAME" && d.turn && d.turn.cBat && d.turn.cBowl && !d.turn.result) {
+                    const resObj = MATRIX[d.turn.cBat][d.turn.cBowl];
+                    const sc = {...d.score};
+                    sc.b++;
+                    if(resObj.v === "OUT") sc.w++; else sc.r += resObj.v;
+                    
+                    update(ref(db, `rooms/${room}/turn`), {result: (resObj.v==="OUT"?"OUT!":resObj.v+" RUNS"), desc: resObj.t});
+                    update(ref(db, `rooms/${room}/score`), sc);
+                }
 
-            const myC = amStriker ? data.turn.cBat : data.turn.cBowl; const oppC = amStriker ? data.turn.cBowl : data.turn.cBat;
-            if(myC) $('slot-me').innerHTML = `<div class="card ${amStriker?'card-bat':'card-bowl'}">${myC}</div>`; else $('slot-me').innerHTML = '<span style="color:#777">PICK</span>';
-            if(oppC) $('slot-opp').innerHTML = `<div class="card" style="background:#333; border-color:#555;">?</div>`; else $('slot-opp').innerHTML = '<span style="color:#777">WAITING</span>';
-
-            if(data.turn.result && data.score.b !== lastBall) {
-                lastBall = data.score.b;
-                $('res-pop').style.display='block'; $('res-pop').innerText=data.turn.result; $('res-pop').style.color = data.turn.result==='OUT!'?'var(--red)':'var(--gold)';
-                $('slot-opp').innerHTML = `<div class="card ${amStriker?'card-bowl':'card-bat'}">${oppC}</div>`; 
-                setTimeout(()=>{ $('res-pop').style.display='none'; if(isHost) nextBall(); }, 2500);
+                // Force Button
+                document.getElementById('force-btn').onclick = () => {
+                    if(d.state === "NAMING") update(ref(db, `rooms/${room}`), { state: "TOSS", toss:{step:"CALL"}, teams:{A:{isNamed:true, name:"CSK"}, B:{isNamed:true, name:"MI"}} });
+                    if(d.state === "TOSS") update(ref(db, `rooms/${room}`), { state: "SELECTION", batTeam:"A", bowlTeam:"B" });
+                    if(d.state === "SELECTION") update(ref(db, `rooms/${room}`), {state:"GAME", turn:{striker:Object.keys(d.players)[0], bowler:Object.keys(d.players)[1]}});
+                    if(d.state === "GAME") app.closeOverlay();
+                }
             }
-        }
+        };
 
-        function renderHand(h, isBat) {
-            const d = $('hand-area'); d.innerHTML = ''; if(!h) return;
-            h.forEach(c => {
-                const div = document.createElement('div'); div.className = `card ${isBat?'card-bat':'card-bowl'}`;
-                div.style.minWidth='80px'; div.style.height='110px'; div.style.fontSize='1.2rem'; div.innerText = c;
-                div.onclick = () => update(ref(db, `rooms/${roomCode}/turn/${isBat?'cBat':'cBowl'}`), c);
-                d.appendChild(div);
-            });
-        }
-
-        // Host Logic
-        setInterval(() => {
-            if(!isHost || !localState || localState.state !== 'GAME') return;
-            const t = localState.turn;
-            if(t && t.cBat && t.cBowl && !t.result) {
-                const res = MATRIX[t.cBat][t.cBowl];
-                let sc = localState.score; let txt = "";
-                if(res === -1) { sc.w++; txt="OUT!"; } else { sc.r += res; txt=res+" RUNS"; }
-                update(ref(db, `rooms/${roomCode}`), { score: sc, 'turn/result': txt });
-            }
-        }, 500);
-
-        function nextBall() {
-            let sc = localState.score; sc.b++;
-            if(sc.w >= 10 || sc.b >= 12) { // 2 Overs default
-                if(sc.target) update(ref(db, `rooms/${roomCode}`), { state: 'OVER', winner: localState.bowlTeam });
-                else update(ref(db, `rooms/${roomCode}`), { state: 'SELECTION', batTeam: localState.bowlTeam, bowlTeam: localState.batTeam, 'score/r':0,'score/w':0,'score/b':0,'score/target':sc.r, turn:{striker:null} });
-            } else {
-                let up = { 'score/b': sc.b, 'turn/cBat':null, 'turn/cBowl':null, 'turn/result':null };
-                if(localState.turn.result==='OUT!' || sc.b%6===0) up.state = 'SELECTION';
-                if(localState.turn.result==='OUT!') up['turn/striker']=null;
-                if(sc.b%6===0) up['turn/bowler']=null;
-                remCard(localState.turn.striker, localState.turn.cBat); remCard(localState.turn.bowler, localState.turn.cBowl);
-                update(ref(db, `rooms/${roomCode}`), up);
-            }
-        }
-        function remCard(p,c){ const h=localState.players[p].hand; const i=h.indexOf(c); if(i>-1) { h.splice(i,1); update(ref(db,`rooms/${roomCode}/players/${p}/hand`), h.length?h:CARDS[localState.batTeam==='A'?'BAT':'BOWL']); } }
-
+        // Expose to Window
+        window.app = app;
     </script>
 </body>
 </html>
