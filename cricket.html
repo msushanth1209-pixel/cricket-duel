@@ -405,7 +405,7 @@
                     if(d.teams.B.captain) document.getElementById('cap-b-name').innerText = "⭐ " + d.teams.B.captain;
                 }
 
-                // NAMING & TOSS (No Change)
+                // NAMING & TOSS
                 if(d.state === "NAMING") {
                     const isCap = d.teams[myTeam].captain === me;
                     document.getElementById('naming-ui').style.display = (isCap && !d.teams[myTeam].isNamed) ? "block" : "none";
@@ -471,7 +471,7 @@
                         foot.innerHTML = "<p style='width:100%; text-align:center; color:#ccc'>Spectating...</p>";
                     }
 
-                    // PRIVACY SLOTS
+                    // SLOTS
                     const sMe = document.getElementById('slot-me');
                     const sOpp = document.getElementById('slot-opp');
                     sMe.className="slot"; sOpp.className="slot";
@@ -490,7 +490,7 @@
                         if(turn.cBat && turn.cBowl && !turn.result) { sMe.innerText = "Ready"; sOpp.innerText = "Ready"; }
                     }
 
-                    // RESULT
+                    // RESULT OVERLAY
                     if(turn.result) {
                         document.getElementById('result-overlay').style.display = "flex";
                         document.getElementById('res-text').innerText = turn.result;
@@ -520,7 +520,18 @@
                 if(localData.teams.A.captain === pName) set(ref(db, `rooms/${room}/teams/A/captain`), null);
                 if(localData.teams.B.captain === pName) set(ref(db, `rooms/${room}/teams/B/captain`), null);
             },
-            hostShuffle: () => { /* Logic hidden for brevity */ },
+            hostShuffle: () => {
+                const players = Object.keys(localData.players);
+                for (let i = players.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [players[i], players[j]] = [players[j], players[i]];
+                }
+                const updates = {};
+                players.forEach((p, i) => { updates[`rooms/${room}/players/${p}/team`] = i % 2 === 0 ? "A" : "B"; });
+                updates[`rooms/${room}/teams/A/captain`] = null;
+                updates[`rooms/${room}/teams/B/captain`] = null;
+                update(ref(db), updates);
+            },
             hostStart: () => {
                 if(!localData.teams.A.captain || !localData.teams.B.captain) return alert("Assign captains!");
                 update(ref(db, `rooms/${room}`), {state:"NAMING"});
@@ -539,22 +550,30 @@
                 const isBat = localData.batTeam === myTeam;
                 update(ref(db, `rooms/${room}/turn`), { [isBat?"cBat":"cBowl"]: c });
             },
-            
-            // --- SMART NEXT BALL LOGIC ---
+
+            // --- SMART FLOW LOGIC ---
             closeOverlay: () => {
                 if(!isHost) return;
                 const turn = localData.turn;
                 const balls = localData.score.b;
 
-                // 1. End of Over (Every 6 balls) OR Wicket -> Go to Selection
+                // ATOMIC UPDATES: Perform updates in a single batch to avoid race conditions
+                const updates = {};
+
+                // 1. WICKET or END OF OVER -> Force Selection Screen & Clear Players
                 if ( (balls > 0 && balls % 6 === 0) || turn.result === "OUT!" ) {
-                    update(ref(db, `rooms/${room}`), { state:"SELECTION" });
-                    update(ref(db, `rooms/${room}/turn`), { cBat:null, cBowl:null, result:null, desc:null, striker:null, bowler:null });
+                    updates[`rooms/${room}/state`] = "SELECTION";
+                    updates[`rooms/${room}/turn/striker`] = null;
+                    updates[`rooms/${room}/turn/bowler`] = null;
                 } 
-                // 2. Normal Run -> Stay in Game, Just Clear Cards
-                else {
-                    update(ref(db, `rooms/${room}/turn`), { cBat:null, cBowl:null, result:null, desc:null });
-                }
+                
+                // 2. Clear Cards & Results (Always happens)
+                updates[`rooms/${room}/turn/cBat`] = null;
+                updates[`rooms/${room}/turn/cBowl`] = null;
+                updates[`rooms/${room}/turn/result`] = null;
+                updates[`rooms/${room}/turn/desc`] = null;
+
+                update(ref(db), updates);
             },
 
             // HOST LOOP
@@ -568,10 +587,12 @@
                     }, 2000);
                 }
                 
+                // SELECTION -> GAME Logic
                 if(d.state==="SELECTION" && d.turn?.striker && d.turn?.bowler) {
                     update(ref(db, `rooms/${room}`), {state:"GAME"});
                 }
                 
+                // GAME Logic
                 if(d.state==="GAME" && d.turn?.cBat && d.turn?.cBowl && !d.turn.result) {
                     const r = MATRIX[d.turn.cBat][d.turn.cBowl];
                     const s = {...d.score}; s.b++;
