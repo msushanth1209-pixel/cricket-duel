@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cricket Duel</title>
     <style>
-        /* --- 1. VISUAL THEME & CSS --- */
+        /* --- VISUAL THEME --- */
         :root {
             --pitch-green: #27ae60;
             --pitch-light: #2ecc71;
@@ -22,15 +22,13 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--night-sky);
             color: var(--text-main);
-            height: 100dvh; /* Dynamic Viewport Height [cite: 107] */
+            height: 100dvh;
             display: flex;
-            flex-direction: column; /* Sandwich Layout */
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- 2. SANDWICH LAYOUT  --- */
-        
-        /* Fixed Header [cite: 108] */
+        /* --- SANDWICH LAYOUT --- */
         header {
             height: 60px;
             background: rgba(0,0,0,0.4);
@@ -38,13 +36,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 15px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             flex-shrink: 0;
-            z-index: 10;
         }
 
-        /* Middle Scroll Area [cite: 111] */
         main {
             flex: 1;
             overflow-y: auto;
@@ -56,203 +52,172 @@
             padding: 20px;
         }
 
-        /* Fixed Footer [cite: 109] */
         footer {
-            height: 90px;
+            height: 100px;
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255,255,255,0.1);
             display: flex;
             align-items: center;
             padding: 0 10px;
-            overflow-x: auto; /* Horizontal Scroll for Cards [cite: 91] */
+            overflow-x: auto;
             white-space: nowrap;
             flex-shrink: 0;
-            z-index: 10;
         }
 
-        /* --- UI COMPONENTS --- */
+        /* --- UI ELEMENTS --- */
         h1, h2, h3 { margin: 0 0 10px 0; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
-        
+
         .btn {
             background: linear-gradient(135deg, var(--pitch-light), var(--pitch-green));
             border: none;
             color: white;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 50px;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
             text-transform: uppercase;
+            transition: transform 0.1s;
         }
         .btn:active { transform: scale(0.95); }
-        
-        /* Specific Styles */
-        .btn-danger { background: linear-gradient(135deg, var(--danger-red), #c0392b); box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
+        .btn-danger { background: linear-gradient(135deg, var(--danger-red), #c0392b); }
         .btn-blue { background: linear-gradient(135deg, var(--mi-blue), #2980b9); }
+        .btn-small { padding: 4px 10px; font-size: 0.7rem; margin-left: 5px; box-shadow: none; }
 
-        /* Card Buttons in Footer */
         .card-btn {
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            width: 80px;
-            height: 60px;
-            margin-right: 12px;
+            width: 85px;
+            height: 70px;
+            margin-right: 10px;
             background: var(--card-white);
             color: var(--night-sky);
             border-radius: 8px;
             border: none;
             font-weight: 900;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            cursor: pointer;
-            text-align: center;
             white-space: normal;
+            text-align: center;
+            cursor: pointer;
             line-height: 1.1;
         }
-        .card-btn:active { transform: scale(0.9); }
-        
-        /* Screens */
+        .card-btn:active { transform: scale(0.9); background: #dfe4ea; }
+
         .screen { display: none; width: 100%; max-width: 500px; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Lobby List */
+        /* LOBBY */
         .team-box { 
             background: rgba(255,255,255,0.05); 
-            padding: 15px; 
-            margin: 15px 0; 
-            border-radius: 12px; 
+            padding: 15px; margin: 15px 0; border-radius: 12px; 
             border: 1px solid rgba(255,255,255,0.1);
         }
         .player-item { 
-            padding: 10px; 
+            padding: 8px; 
             border-bottom: 1px solid rgba(255,255,255,0.05); 
             display: flex; 
             justify-content: space-between; 
-            font-size: 0.9rem;
+            align-items: center;
         }
+        .host-actions { display: flex; gap: 5px; }
 
-        /* The Pitch (Gameplay) [cite: 88] */
+        /* GAMEPLAY */
         .scoreboard {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid #333;
-            display: flex;
-            justify-content: space-between;
+            background: #000; color: #0f0; font-family: 'Courier New', monospace;
+            padding: 15px; border-radius: 8px; border: 2px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
-            box-shadow: 0 0 10px rgba(0,255,0,0.1);
+            box-shadow: 0 0 15px rgba(0,255,0,0.1);
         }
         .pitch-area {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            perspective: 800px;
+            display: flex; justify-content: space-between; margin: 20px 0; perspective: 800px;
         }
         .slot {
-            width: 130px;
-            height: 180px;
+            width: 130px; height: 180px;
             background: rgba(255,255,255,0.05);
             border: 2px dashed rgba(255,255,255,0.2);
             border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-weight: bold;
-            color: rgba(255,255,255,0.4);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; color: rgba(255,255,255,0.4);
+            transition: all 0.5s;
         }
-        /* Card Reveal Logic */
         .slot.ready { border-color: var(--csk-yellow); background: rgba(241, 196, 15, 0.1); color: var(--csk-yellow); }
         .slot.revealed { 
-            background: var(--card-white); 
-            color: var(--night-sky); 
-            border: 4px solid var(--pitch-light);
-            transform: rotateY(0deg); 
-            font-size: 1.5rem;
+            background: var(--card-white); color: var(--night-sky); 
+            border: 4px solid var(--pitch-light); transform: rotateY(0deg); 
+            font-weight: 900; font-size: 1.2rem;
         }
 
-        /* 3D Coin [cite: 69] */
         #coin {
-            width: 120px; height: 120px;
-            border-radius: 50%;
-            background: gold;
-            border: 8px solid #d4ac0d;
-            margin: 30px auto;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; font-weight: 900; color: #7f6000;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            width: 100px; height: 100px; border-radius: 50%; background: gold; border: 5px solid #d4ac0d;
+            margin: 20px auto; display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; color: #7f6000; font-weight: 900;
         }
-        .spinning { animation: flip 0.8s infinite linear; }
+        .spinning { animation: flip 0.6s infinite linear; }
         @keyframes flip { 0% { transform: rotateX(0); } 100% { transform: rotateX(360deg); } }
 
-        /* Overlay */
         #result-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92);
-            display: none; flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 100;
+            background: rgba(0,0,0,0.95); z-index: 100;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
         }
-        #res-text { font-size: 5rem; font-weight: 900; color: var(--csk-yellow); text-shadow: 0 0 30px var(--csk-yellow); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
     <header>
-        <div style="font-weight:900; font-size:1.2rem; color:var(--pitch-light);">CRICKET DUEL</div>
-        <button id="force-btn" class="btn btn-danger" style="padding: 6px 16px; font-size: 0.8rem; display:none;">FORCE ⏩</button>
+        <div style="font-weight:900; font-size:1.1rem; color:var(--pitch-light);">CRICKET DUEL</div>
+        <button id="force-btn" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.7rem; display:none;">FORCE ⏩</button>
     </header>
 
     <main>
-        
         <div id="screen-login" class="screen active">
-            <h1>Enter Stadium</h1>
-            <p style="color: #bdc3c7; font-size: 0.9rem;">Multiplayer Strategy Card Game</p>
-            <input type="text" id="inp-room" placeholder="Room Code (e.g. IPL)" style="display:block; width:100%; padding:15px; margin:10px 0; border-radius:10px; border:none; box-sizing:border-box;">
-            <input type="text" id="inp-name" placeholder="Your Name" style="display:block; width:100%; padding:15px; margin:10px 0; border-radius:10px; border:none; box-sizing:border-box;">
-            <br>
-            <button class="btn" style="width:100%" onclick="app.join()">JOIN MATCH</button>
+            <h1>Stadium Entry</h1>
+            <input type="text" id="inp-room" placeholder="Room Code (e.g. IPL)" style="width:100%; padding:15px; margin:10px 0; border-radius:10px; border:none; box-sizing:border-box;">
+            <input type="text" id="inp-name" placeholder="Your Name" style="width:100%; padding:15px; margin:10px 0; border-radius:10px; border:none; box-sizing:border-box;">
+            <button class="btn" style="width:100%; margin-top:10px;" onclick="app.join()">JOIN MATCH</button>
         </div>
 
         <div id="screen-lobby" class="screen">
             <h2>Room: <span id="lobby-code" style="color:var(--pitch-light)"></span></h2>
             
             <div class="team-box" style="border-left: 5px solid var(--danger-red);">
-                <h3 style="color:var(--danger-red); text-align:left;">RED TEAM</h3>
-                <div id="list-a"></div>
-                <div id="cap-a-name" style="font-size:0.8rem; color:gold; margin-top:5px;"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="color:var(--danger-red); margin:0;">RED TEAM</h3>
+                    <div id="cap-a-name" style="color:gold; font-size:0.8rem;"></div>
+                </div>
+                <div id="list-a" style="margin-top:10px;"></div>
             </div>
 
             <div class="team-box" style="border-left: 5px solid var(--mi-blue);">
-                <h3 style="color:var(--mi-blue); text-align:left;">BLUE TEAM</h3>
-                <div id="list-b"></div>
-                <div id="cap-b-name" style="font-size:0.8rem; color:gold; margin-top:5px;"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="color:var(--mi-blue); margin:0;">BLUE TEAM</h3>
+                    <div id="cap-b-name" style="color:gold; font-size:0.8rem;"></div>
+                </div>
+                <div id="list-b" style="margin-top:10px;"></div>
             </div>
 
-            <div id="host-controls" style="display:none; text-align:center; margin-top:20px;">
-                <p style="color:#bdc3c7; font-size:0.8rem;">HOST CONTROLS</p>
-                <button class="btn btn-blue" onclick="app.hostAssign()">Assign Caps</button>
+            <div id="host-controls" style="display:none; text-align:center;">
+                <p style="color:#7f8c8d; font-size:0.8rem;">HOST COMMANDS</p>
+                <button class="btn btn-blue" style="margin-bottom:10px;" onclick="app.hostShuffle()">🔀 Shuffle Teams</button>
+                <br>
                 <button class="btn" onclick="app.hostStart()">START MATCH</button>
             </div>
-            <p id="lobby-msg" style="text-align:center; color:#7f8c8d; margin-top:20px;">Waiting for players...</p>
+            <p id="lobby-msg" style="text-align:center; color:#7f8c8d; margin-top:10px;">Waiting for players...</p>
         </div>
 
         <div id="screen-naming" class="screen">
-            <h2>Team Identity</h2>
+            <h2>Team Name</h2>
             <div id="naming-ui" style="display:none;">
-                <input type="text" id="inp-teamname" placeholder="Enter Team Name" style="padding:15px; width:100%; border-radius:10px; border:none; margin-bottom:15px; box-sizing:border-box;">
-                <button class="btn" style="width:100%" onclick="app.submitName()">CONFIRM NAME</button>
+                <input type="text" id="inp-teamname" placeholder="Enter Team Name" style="width:100%; padding:15px; border-radius:10px; border:none; margin-bottom:15px; box-sizing:border-box;">
+                <button class="btn" style="width:100%" onclick="app.submitName()">CONFIRM</button>
             </div>
-            <p id="naming-msg" style="text-align:center;">Waiting for captains...</p>
+            <p id="naming-msg" style="text-align:center; color:#95a5a6;"></p>
         </div>
 
         <div id="screen-toss" class="screen" style="text-align:center;">
@@ -263,8 +228,8 @@
         </div>
 
         <div id="screen-selection" class="screen">
-            <h2>Tactics</h2>
-            <h3 id="sel-title" style="color:var(--pitch-light); font-size:0.9rem;"></h3>
+            <h2>Strategy</h2>
+            <h3 id="sel-title" style="color:var(--pitch-light); font-size:0.9rem; margin-bottom:15px;"></h3>
             <div id="sel-list" class="team-box"></div>
             <p id="sel-msg" style="text-align:center; color:#95a5a6;"></p>
         </div>
@@ -272,45 +237,41 @@
         <div id="screen-game" class="screen">
             <div class="scoreboard">
                 <div>
-                    <div style="font-size:0.7rem; color:#888;">BATTING</div>
-                    <div id="sb-bat" style="font-weight:bold;">CSK</div>
+                    <div style="font-size:0.7rem; color:#888;">BAT</div>
+                    <div id="sb-bat" style="font-weight:bold;">--</div>
                 </div>
                 <div style="text-align:center;">
-                    <div style="font-size:1.5rem; color:#fff;" id="sb-score">0/0</div>
-                    <div style="font-size:0.8rem; color:#888;">TARGET: <span id="sb-target">--</span></div>
+                    <div id="sb-score" style="font-size:1.5rem; color:#fff;">0/0</div>
+                    <div style="font-size:0.7rem; color:#888;">TARGET: <span id="sb-target">--</span></div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-size:0.7rem; color:#888;">BOWLING</div>
-                    <div id="sb-bowl" style="font-weight:bold;">MI</div>
+                    <div style="font-size:0.7rem; color:#888;">BOWL</div>
+                    <div id="sb-bowl" style="font-weight:bold;">--</div>
                 </div>
             </div>
-
-            <div style="text-align:center; margin-bottom:10px;">
-                <span style="background:#333; padding:5px 10px; border-radius:5px; font-size:0.8rem;">OVERS: <span id="sb-overs">0.0</span></span>
+            <div style="text-align:center;">
+                <span style="background:#333; padding:4px 8px; border-radius:4px; font-size:0.8rem;">OVERS: <span id="sb-overs">0.0</span></span>
             </div>
 
             <div class="pitch-area">
                 <div id="slot-opp" class="slot">
                     <span style="font-size:2rem;">?</span>
-                    <span style="font-size:0.7rem; margin-top:5px;">OPPONENT</span>
+                    <span>OPPONENT</span>
                 </div>
                 <div id="slot-me" class="slot">
                     <span style="font-size:2rem;">...</span>
-                    <span style="font-size:0.7rem; margin-top:5px;">YOUR MOVE</span>
+                    <span>YOU</span>
                 </div>
             </div>
-
-            <p id="game-msg" style="text-align:center; color:var(--csk-yellow); font-weight:bold;">Prepare for the next ball...</p>
+            <p id="game-msg" style="text-align:center; color:var(--csk-yellow); font-weight:bold;">Make your move!</p>
         </div>
-
     </main>
 
-    <footer id="foot-hand">
-        </footer>
+    <footer id="foot-hand"></footer>
 
     <div id="result-overlay">
-        <div id="res-text">OUT!</div>
-        <div id="res-desc" style="color:#bdc3c7; margin-bottom:30px; font-size:1.2rem;">Clean Bowled</div>
+        <div id="res-text" style="font-size:4rem; font-weight:900; color:var(--csk-yellow); margin-bottom:10px;">OUT!</div>
+        <div id="res-desc" style="font-size:1.2rem; color:#bdc3c7; margin-bottom:30px;">Clean Bowled</div>
         <button class="btn" onclick="app.closeOverlay()">NEXT BALL</button>
     </div>
 
@@ -318,7 +279,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- 1. CONFIGURATION (User Provided) ---
+        // --- CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyC--gCjpWdYsezrqvQ4tAzvtLKGW_oRtsM",
             authDomain: "cricketduel.firebaseapp.com",
@@ -333,7 +294,7 @@
         const fApp = initializeApp(firebaseConfig);
         const db = getDatabase(fApp);
 
-        // --- 2. LOGIC MATRIX [cite: 7] ---
+        // --- GAME LOGIC MATRIX ---
         const MATRIX = {
             "6 RUNS": { "SPIN": {v:6, t:"Smashed!"}, "FULL TOSS": {v:6, t:"Punished!"}, "FAST": {v:"OUT", t:"Pace!"}, "YORKER": {v:"OUT", t:"Bowled!"}, "BOUNCER": {v:0, t:"Missed"} },
             "4 RUNS": { "BOUNCER": {v:4, t:"Pulled!"}, "FULL TOSS": {v:4, t:"Driven!"}, "FAST": {v:"OUT", t:"Edged!"}, "YORKER": {v:"OUT", t:"LBW!"}, "SPIN": {v:0, t:"Dot Ball"} },
@@ -341,27 +302,24 @@
             "1 RUN":  { "FAST": {v:1, t:"Quick Single"}, "YORKER": {v:1, t:"Dug Out"}, "SPIN": {v:"OUT", t:"Stumped!"}, "BOUNCER": {v:"OUT", t:"Fended!"}, "FULL TOSS": {v:0, t:"Dot Ball"} },
             "DEFENSE":{ "FAST": {v:0, t:"Solid"}, "YORKER": {v:0, t:"Digs it out"}, "BOUNCER": {v:0, t:"Ducks"}, "SPIN": {v:0, t:"Blocked"}, "FULL TOSS": {v:"OUT", t:"Napping!"} }
         };
-
         const BAT_HAND = Object.keys(MATRIX);
         const BOWL_HAND = ["SPIN", "FAST", "YORKER", "BOUNCER", "FULL TOSS"];
 
-        // --- 3. STATE ---
+        // --- STATE ---
         let room = "";
         let me = "";
-        let team = ""; 
+        let team = "";
         let isHost = false;
         let localData = null;
 
-        // --- 4. APP LOGIC ---
         const app = {
             join: () => {
                 const c = document.getElementById('inp-room').value.toUpperCase().trim();
                 const n = document.getElementById('inp-name').value.trim();
-                if(!c || !n) return alert("Enter Code & Name");
-                
+                if(!c || !n) return alert("Please enter Code and Name");
                 room = c; me = n;
-                const rRef = ref(db, `rooms/${room}`);
 
+                const rRef = ref(db, `rooms/${room}`);
                 get(rRef).then(snap => {
                     if(!snap.exists()) {
                         isHost = true;
@@ -370,10 +328,10 @@
                             state: "LOBBY",
                             players: { [me]: { team:"A", status:"ON" } },
                             teams: { A:{name:"Red", isNamed:false}, B:{name:"Blue", isNamed:false} },
-                            score: { r:0, w:0, b:0, target:null }
+                            score: { r:0, w:0, b:0, target:null },
+                            turn: { striker: "", bowler: "", cBat: "", cBowl: "", result: "" }
                         });
                     } else {
-                        // Auto-balance teams [cite: 47]
                         const p = snap.val().players || {};
                         const t = Object.keys(p).length % 2 === 0 ? "A" : "B";
                         update(ref(db, `rooms/${room}/players/${me}`), { team: t, status:"ON" });
@@ -382,35 +340,51 @@
                 });
             },
 
-            // --- RENDER ENGINE ---
             render: (d) => {
                 if(!d) return;
                 document.querySelectorAll('.screen').forEach(e => e.classList.remove('active'));
                 document.getElementById(`screen-${d.state.toLowerCase()}`).classList.add('active');
 
-                // LOBBY
+                // LOBBY RENDERING
                 if(d.state === "LOBBY") {
                     document.getElementById('lobby-code').innerText = room;
                     const lA = document.getElementById('list-a');
                     const lB = document.getElementById('list-b');
                     lA.innerHTML = ""; lB.innerHTML = "";
+                    
                     Object.entries(d.players||{}).forEach(([k,v]) => {
-                        const el = `<div class="player-item">${k}</div>`;
-                        if(v.team === "A") lA.innerHTML += el; else lB.innerHTML += el;
-                        if(k === me) team = v.team;
+                        // Host Controls: Swap (⇄) and Captain (©)
+                        let controls = "";
+                        if(isHost) {
+                            const newTeam = v.team === "A" ? "B" : "A";
+                            controls = `
+                                <div class="host-actions">
+                                    <button class="btn btn-small" style="background:#f39c12" onclick="app.hostSetCap('${k}', '${v.team}')">©</button>
+                                    <button class="btn btn-small" style="background:#95a5a6" onclick="app.hostSwap('${k}', '${newTeam}')">⇄</button>
+                                </div>
+                            `;
+                        }
+
+                        const html = `<div class="player-item"><span>${k}</span> ${controls}</div>`;
+                        if(v.team==="A") lA.innerHTML+=html; else lB.innerHTML+=html;
+                        if(k===me) team = v.team;
                     });
-                    if(d.teams.A.captain) document.getElementById('cap-a-name').innerText = "C: "+d.teams.A.captain;
-                    if(d.teams.B.captain) document.getElementById('cap-b-name').innerText = "C: "+d.teams.B.captain;
+
+                    // Show Captains
+                    if(d.teams.A.captain) document.getElementById('cap-a-name').innerText = "⭐ " + d.teams.A.captain;
+                    if(d.teams.B.captain) document.getElementById('cap-b-name').innerText = "⭐ " + d.teams.B.captain;
+                    
                     if(isHost) document.getElementById('host-controls').style.display = "block";
                 }
 
                 // NAMING
                 if(d.state === "NAMING") {
                     const myT = d.teams[team];
+                    const isCap = myT.captain === me;
                     const ui = document.getElementById('naming-ui');
-                    if(myT.captain === me && !myT.isNamed) {
+                    if(isCap && !myT.isNamed) {
                         ui.style.display = "block";
-                        document.getElementById('naming-msg').innerText = "Captain, name your team!";
+                        document.getElementById('naming-msg').innerText = "Captain, enter your team name:";
                     } else {
                         ui.style.display = "none";
                         document.getElementById('naming-msg').innerText = `Waiting for ${myT.captain} to name team...`;
@@ -419,99 +393,98 @@
 
                 // TOSS
                 if(d.state === "TOSS") {
-                    const step = d.toss.step;
+                    const t = d.toss;
                     const coin = document.getElementById('coin');
                     const ui = document.getElementById('toss-ui');
                     const msg = document.getElementById('toss-msg');
-                    
-                    coin.innerText = step === "DECIDE" ? (d.toss.call==="HEADS"?"H":"T") : "?";
-                    coin.className = step === "SPIN" ? "spinning" : "";
+                    coin.className = t.step==="SPIN" ? "spinning" : "";
+                    coin.innerText = t.step==="DECIDE" ? (t.call==="HEADS"?"H":"T") : "?";
                     ui.innerHTML = "";
 
-                    if(step === "CALL" && team === "A" && d.teams.A.captain === me) {
-                        msg.innerText = "Red Captain, Call it!";
+                    if(t.step === "CALL" && team === "A" && d.teams.A.captain === me) {
+                        msg.innerText = "Call HEADS or TAILS";
                         ui.innerHTML = `<button class="btn" onclick="app.tossCall('HEADS')">HEADS</button> <button class="btn" onclick="app.tossCall('TAILS')">TAILS</button>`;
-                    } else if (step === "DECIDE" && d.toss.winner === team && d.teams[team].captain === me) {
-                        msg.innerText = "YOU WON! Choose to:";
+                    } else if (t.step === "DECIDE" && t.winner === team && d.teams[team].captain === me) {
+                        msg.innerText = "YOU WON! Choose:";
                         ui.innerHTML = `<button class="btn" onclick="app.tossDecide('BAT')">BAT</button> <button class="btn" onclick="app.tossDecide('BOWL')">BOWL</button>`;
                     } else {
-                        msg.innerText = step === "SPIN" ? "Spinning..." : "Waiting...";
+                        msg.innerText = t.step==="SPIN"?"Coin Spinning...":"Waiting for Toss...";
                     }
                 }
 
                 // SELECTION
                 if(d.state === "SELECTION") {
                     const isBat = d.batTeam === team;
-                    const role = isBat ? "Striker" : "Bowler";
                     const isCap = d.teams[team].captain === me;
+                    const role = isBat ? "Striker" : "Bowler";
                     
-                    document.getElementById('sel-title').innerText = isBat ? "Pick Striker" : "Pick Bowler";
+                    document.getElementById('sel-title').innerText = `Pick a ${role}`;
                     const list = document.getElementById('sel-list');
                     list.innerHTML = "";
-                    
-                    if(isCap) {
+
+                    const picked = isBat ? d.turn?.striker : d.turn?.bowler;
+
+                    if(picked) {
+                        document.getElementById('sel-msg').innerText = `${role} Selected: ${picked}`;
+                        if(!isCap && !picked) document.getElementById('sel-msg').innerText = "Waiting for captain...";
+                    } else if(isCap) {
+                        document.getElementById('sel-msg').innerText = "Tap a player below:";
                         Object.entries(d.players).forEach(([k,v]) => {
-                            if(v.team === team) list.innerHTML += `<button class="btn" style="width:100%; margin-bottom:5px; font-size:0.8rem;" onclick="app.selectPlayer('${k}')">${k}</button>`;
+                            if(v.team === team) {
+                                list.innerHTML += `<button class="btn" style="width:100%; margin-bottom:5px;" onclick="app.selectPlayer('${k}')">${k}</button>`;
+                            }
                         });
-                        document.getElementById('sel-msg').innerText = "Tap a player to send them to the pitch.";
                     } else {
                         document.getElementById('sel-msg').innerText = "Captain is selecting...";
                     }
                 }
 
-                // GAME
+                // GAMEPLAY
                 if(d.state === "GAME") {
-                    // Update Scoreboard
                     document.getElementById('sb-bat').innerText = d.teams[d.batTeam].name;
                     document.getElementById('sb-bowl').innerText = d.teams[d.bowlTeam].name;
                     document.getElementById('sb-score').innerText = `${d.score.r}/${d.score.w}`;
                     document.getElementById('sb-overs').innerText = Math.floor(d.score.b/6) + "." + (d.score.b%6);
                     document.getElementById('sb-target').innerText = d.score.target || "--";
 
-                    // Determine Role
                     const turn = d.turn || {};
                     let role = "spec";
                     if(turn.striker === me) role = "bat";
                     if(turn.bowler === me) role = "bowl";
 
-                    // Update Hand (Footer)
                     const foot = document.getElementById('foot-hand');
                     foot.innerHTML = "";
                     if(role === "bat") BAT_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
                     else if(role === "bowl") BOWL_HAND.forEach(c => foot.innerHTML += `<button class="card-btn" onclick="app.play('${c}')">${c}</button>`);
                     else foot.innerHTML = "<p style='width:100%; text-align:center; color:#7f8c8d'>Spectating...</p>";
 
-                    // Update Pitch Slots
                     const sMe = document.getElementById('slot-me');
                     const sOpp = document.getElementById('slot-opp');
-                    
-                    sMe.className = "slot"; sOpp.className = "slot"; // Reset
+                    sMe.className="slot"; sOpp.className="slot";
 
                     if(role !== "spec") {
-                        // My Card State
-                        const myCard = role === "bat" ? turn.cBat : turn.cBowl;
-                        if(myCard) { sMe.classList.add('ready'); sMe.innerHTML = `<span style="font-size:1.2rem">${myCard}</span>`; }
-                        else { sMe.innerHTML = "YOUR<br>MOVE"; }
-
-                        // Opponent State
-                        const oppCard = role === "bat" ? turn.cBowl : turn.cBat;
-                        if(oppCard) { sOpp.classList.add('ready'); sOpp.innerHTML = "READY"; }
-                        else { sOpp.innerHTML = "OPPONENT<br>THINKING"; }
+                        const myC = role==="bat" ? turn.cBat : turn.cBowl;
+                        if(myC) { sMe.classList.add('ready'); sMe.innerHTML=`<div style="font-size:1.1rem; font-weight:bold">${myC}</div>`; }
+                        else sMe.innerHTML = "YOUR<br>MOVE";
+                        
+                        const opC = role==="bat" ? turn.cBowl : turn.cBat;
+                        if(opC) { sOpp.classList.add('ready'); sOpp.innerHTML="READY"; }
+                        else sOpp.innerHTML = "OPPONENT<br>THINKING";
                     } else {
-                        sMe.innerHTML = turn.striker;
-                        sOpp.innerHTML = turn.bowler;
+                        sMe.innerHTML = turn.striker || "...";
+                        sOpp.innerHTML = turn.bowler || "...";
                     }
 
-                    // Result
                     if(turn.result) {
-                        document.getElementById('result-overlay').style.display = "flex";
+                        const res = document.getElementById('result-overlay');
+                        res.style.display = "flex";
                         document.getElementById('res-text').innerText = turn.result;
                         document.getElementById('res-desc').innerText = turn.desc;
                         
-                        // Reveal logic
                         if(role !== "spec") {
+                            const opC = role==="bat" ? turn.cBowl : turn.cBat;
                             sOpp.classList.add('revealed');
-                            sOpp.innerText = role === "bat" ? turn.cBowl : turn.cBat;
+                            sOpp.innerText = opC;
                         }
                     } else {
                         document.getElementById('result-overlay').style.display = "none";
@@ -519,15 +492,41 @@
                 }
             },
 
-            // --- USER ACTIONS ---
-            hostAssign: () => {
-                const ps = Object.entries(localData.players);
-                const cA = ps.find(([k,v]) => v.team==="A")[0];
-                const cB = ps.find(([k,v]) => v.team==="B")[0];
-                update(ref(db, `rooms/${room}/teams/A`), {captain:cA});
-                update(ref(db, `rooms/${room}/teams/B`), {captain:cB});
+            // --- HOST ACTIONS ---
+            hostSwap: (pName, newTeam) => {
+                update(ref(db, `rooms/${room}/players/${pName}`), { team: newTeam });
+                // Reset captains if swapping a captain
+                if(localData.teams.A.captain === pName) update(ref(db, `rooms/${room}/teams/A/captain`), null);
+                if(localData.teams.B.captain === pName) update(ref(db, `rooms/${room}/teams/B/captain`), null);
             },
-            hostStart: () => update(ref(db, `rooms/${room}`), {state:"NAMING"}),
+            hostSetCap: (pName, t) => {
+                update(ref(db, `rooms/${room}/teams/${t}/captain`), pName);
+            },
+            hostShuffle: () => {
+                const players = Object.keys(localData.players);
+                // Fisher-Yates Shuffle
+                for (let i = players.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [players[i], players[j]] = [players[j], players[i]];
+                }
+                const updates = {};
+                players.forEach((p, i) => {
+                    updates[`rooms/${room}/players/${p}/team`] = i % 2 === 0 ? "A" : "B";
+                });
+                // Clear Captains
+                updates[`rooms/${room}/teams/A/captain`] = null;
+                updates[`rooms/${room}/teams/B/captain`] = null;
+                update(ref(db), updates);
+            },
+            hostStart: () => {
+                // Validation: Ensure captains exist
+                if(!localData.teams.A.captain || !localData.teams.B.captain) {
+                    return alert("Please assign captains for both teams first!");
+                }
+                update(ref(db, `rooms/${room}`), {state:"NAMING"});
+            },
+
+            // --- PLAYER ACTIONS ---
             submitName: () => {
                 const n = document.getElementById('inp-teamname').value;
                 update(ref(db, `rooms/${room}/teams/${team}`), {name:n, isNamed:true});
@@ -536,62 +535,63 @@
             tossDecide: (c) => {
                 const l = team==="A"?"B":"A";
                 update(ref(db, `rooms/${room}`), {batTeam:team, bowlTeam:l, state:"SELECTION"});
+                update(ref(db, `rooms/${room}/turn`), {striker:"", bowler:"", cBat:"", cBowl:"", result:""});
             },
             selectPlayer: (p) => {
                 const isBat = localData.batTeam === team;
-                update(ref(db, `rooms/${room}/turn/${isBat?"striker":"bowler"}`), p);
+                const field = isBat ? "striker" : "bowler";
+                update(ref(db, `rooms/${room}/turn`), { [field]: p });
             },
             play: (c) => {
                 const isBat = localData.batTeam === team;
-                update(ref(db, `rooms/${room}/turn/${isBat?"cBat":"cBowl"}`), c);
+                const field = isBat ? "cBat" : "cBowl";
+                update(ref(db, `rooms/${room}/turn`), { [field]: c });
             },
             closeOverlay: () => {
-                // Host resets state, others just wait
                 if(isHost) {
-                     update(ref(db, `rooms/${room}`), {state:"SELECTION", turn:{striker:null, bowler:null, cBat:null, cBowl:null, result:null}});
+                     update(ref(db, `rooms/${room}`), { state:"SELECTION" });
+                     update(ref(db, `rooms/${room}/turn`), { cBat:"", cBowl:"", result:"", desc:"", striker:null, bowler:null }); 
                 }
             },
 
-            // --- HOST SERVER LOGIC  ---
+            // --- SERVER LOOP ---
             hostLoop: (d) => {
-                // Naming -> Toss
                 if(d.state==="NAMING" && d.teams.A.isNamed && d.teams.B.isNamed) {
                     update(ref(db, `rooms/${room}`), {state:"TOSS", toss:{step:"CALL"}});
                 }
-                // Toss Spin
                 if(d.state==="TOSS" && d.toss.step==="SPIN" && !d.toss.winner) {
                     setTimeout(() => {
                         const res = Math.random()>0.5?"HEADS":"TAILS";
                         const w = res===d.toss.call ? "A" : "B";
-                        update(ref(db, `rooms/${room}/toss`), {winner:w, step:"DECIDE", call:res}); // call updated to result for logic
+                        update(ref(db, `rooms/${room}/toss`), {winner:w, step:"DECIDE", call:res});
                     }, 2000);
                 }
-                // Selection -> Game
                 if(d.state==="SELECTION" && d.turn && d.turn.striker && d.turn.bowler) {
                     update(ref(db, `rooms/${room}`), {state:"GAME"});
                 }
-                // Game Calc [cite: 100]
                 if(d.state==="GAME" && d.turn && d.turn.cBat && d.turn.cBowl && !d.turn.result) {
                     const resObj = MATRIX[d.turn.cBat][d.turn.cBowl];
                     const sc = {...d.score};
                     sc.b++;
                     if(resObj.v === "OUT") sc.w++; else sc.r += resObj.v;
-                    
-                    update(ref(db, `rooms/${room}/turn`), {result: (resObj.v==="OUT"?"OUT!":resObj.v+" RUNS"), desc: resObj.t});
+                    update(ref(db, `rooms/${room}/turn`), {
+                        result: (resObj.v==="OUT"?"OUT!":resObj.v+" RUNS"), 
+                        desc: resObj.t
+                    });
                     update(ref(db, `rooms/${room}/score`), sc);
                 }
-
-                // Force Button
                 document.getElementById('force-btn').onclick = () => {
-                    if(d.state === "NAMING") update(ref(db, `rooms/${room}`), { state: "TOSS", toss:{step:"CALL"}, teams:{A:{isNamed:true, name:"CSK"}, B:{isNamed:true, name:"MI"}} });
+                    if(d.state === "NAMING") update(ref(db, `rooms/${room}`), { state: "TOSS", toss:{step:"CALL"}, teams:{A:{isNamed:true, name:"Red"}, B:{isNamed:true, name:"Blue"}} });
                     if(d.state === "TOSS") update(ref(db, `rooms/${room}`), { state: "SELECTION", batTeam:"A", bowlTeam:"B" });
-                    if(d.state === "SELECTION") update(ref(db, `rooms/${room}`), {state:"GAME", turn:{striker:Object.keys(d.players)[0], bowler:Object.keys(d.players)[1]}});
+                    if(d.state === "SELECTION") {
+                        const p = Object.keys(d.players);
+                        update(ref(db, `rooms/${room}/turn`), { striker:p[0], bowler:p[1] });
+                    } 
                     if(d.state === "GAME") app.closeOverlay();
                 }
             }
         };
 
-        // Expose to Window
         window.app = app;
     </script>
 </body>
